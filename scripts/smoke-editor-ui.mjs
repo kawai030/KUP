@@ -51,7 +51,15 @@ assert(/1\s*편집/.test(body), "스텝 '1 편집' 표시");
 assert(/2\s*검수/.test(body), "스텝 '2 검수' 표시");
 assert(/3\s*업로드/.test(body), "스텝 '3 업로드' 표시");
 assert(body.includes("확인 — 검수로"), "하단 '확인 — 검수로' 버튼");
-assert(body.includes("제목 (저장용)"), "제목 전체폭 카드");
+assert(!body.includes("제목 (저장용)"), "제목 텍스트 필드 제거됨");
+assert((await page.locator('[aria-label="제목 수정"]').count()) >= 1, "제목 옆 수정(연필) 아이콘 존재");
+// 온보딩 투어가 있으면 닫기(클릭 가로채기 방지)
+for (const t of ["건너뛰기", "닫기"]) { const b = page.getByText(t, { exact: false }).first(); if (await b.count() && await b.isVisible().catch(() => false)) { await b.click().catch(() => {}); break; } }
+await page.waitForTimeout(300);
+// 연필 클릭 → 인라인 입력으로 전환되는지
+await page.locator('[aria-label="제목 수정"]').first().click();
+await page.waitForTimeout(200);
+assert((await page.locator('textarea.font-display').count()) >= 1, "제목 인라인 편집(자동 높이) 활성화");
 assert(body.includes("페이지 ("), "페이지 네비(전체폭)");
 assert(body.includes("사진 업로드"), "사진 업로드 UI (일반 카드뉴스에도 존재)");
 assert(body.includes("사진 배치") && body.includes("상단 사진") && body.includes("배경 사진"), "사진 배치 2가지(상단/배경) 토글 존재");

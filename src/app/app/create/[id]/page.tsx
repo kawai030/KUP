@@ -33,6 +33,7 @@ export default function EditorPage() {
   const [producing, setProducing] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [stepMsg, setStepMsg] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
   const [hashtagsText, setHashtagsText] = useState("");
   const [photos, setPhotos] = useState<Record<number, string>>({});
 
@@ -191,14 +192,35 @@ export default function EditorPage() {
   return (
     <div>
       <div className="flex items-start justify-between gap-3 flex-wrap mb-5">
-        <div>
+        <div className="flex-1 min-w-0">
           <button onClick={() => router.push("/app/board")} className="text-sm text-muted hover:text-ink">
             ← 콘텐츠 관리
           </button>
-          <h1 className="font-display text-2xl mt-1">{draft.title || "제목 없음"}</h1>
+          {editingTitle ? (
+            <textarea
+              autoFocus
+              rows={1}
+              className="font-display text-2xl mt-1 w-full bg-transparent border-b border-line focus:border-ink outline-none resize-none overflow-hidden leading-snug block"
+              value={draft.title}
+              ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
+              onChange={(e) => patchDraft({ title: e.target.value })}
+              onInput={(e) => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; }}
+              onBlur={() => setEditingTitle(false)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setEditingTitle(false); } }}
+            />
+          ) : (
+            <div className="flex items-start gap-2 mt-1">
+              <h1 className="font-display text-2xl min-w-0">
+                {(() => { const tt = draft.title || "제목 없음"; return tt.length > 50 ? `${tt.slice(0, 50)}…` : tt; })()}
+              </h1>
+              <button onClick={() => setEditingTitle(true)} className="text-muted hover:text-ink shrink-0 mt-1.5" title="제목 수정" aria-label="제목 수정">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <StatusBadge status={card.status} />
-            <Badge tone={isReels ? "rose" : photo ? "amber" : "muted"}>{isReels ? "릴스" : photo ? "사진첨부형" : "카드뉴스"}</Badge>
+            <Badge tone={isReels ? "rose" : "muted"}>{isReels ? "릴스" : "게시물"}</Badge>
             {!isPlan && (card.aiEdited ? <Badge tone="teal">사용자 편집됨</Badge> : <Badge tone="muted">{card.aiLabel}</Badge>)}
             <Badge tone="muted">{card.generatedBy === "ai" ? "Claude" : card.generatedBy === "template" ? "템플릿" : "기획"}</Badge>
           </div>
@@ -246,77 +268,79 @@ export default function EditorPage() {
         </div>
       ) : (
         <>
-          {/* 스텝: 1 편집 · 2 검수 · 3 업로드 */}
-          <div className="flex items-center gap-1 sm:gap-2 mb-5">
+          {/* 스텝: 1 편집 · 2 검수 · 3 업로드 (크게) */}
+          <div className="flex items-center gap-2 sm:gap-3 mb-6">
             {STEPS.map((label, i) => {
               const cur = i === step;
               const reachable = i <= step;
               return (
-                <div key={label} className="flex items-center gap-1 sm:gap-2">
+                <div key={label} className="flex items-center gap-2 sm:gap-3">
                   <button
                     onClick={() => reachable && setStep(i as Step)}
                     disabled={!reachable}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${cur ? "bg-ink text-paper" : reachable ? "bg-paper-2 text-ink" : "text-muted"}`}
+                    className={`flex items-center gap-2.5 px-5 py-3 rounded-full text-base font-semibold transition ${cur ? "bg-ink text-paper shadow-sm" : reachable ? "bg-paper-2 text-ink hover:bg-paper-2/80" : "text-muted"}`}
                   >
-                    <span className={`w-5 h-5 rounded-full grid place-items-center text-xs ${cur ? "bg-paper text-ink" : "bg-card border border-line"}`}>{i + 1}</span>
+                    <span className={`w-7 h-7 rounded-full grid place-items-center text-sm font-bold ${cur ? "bg-paper text-ink" : "bg-card border border-line"}`}>{i + 1}</span>
                     {label}
                   </button>
-                  {i < 2 && <span className="w-5 h-px bg-line" />}
+                  {i < 2 && <span className="w-8 sm:w-12 h-0.5 bg-line rounded-full" />}
                 </div>
               );
             })}
           </div>
 
-          {/* 1. 제목 + 테마 — 위에 전체폭 카드 */}
+          {/* 테마 — 위에 전체폭 카드 (제목은 상단 헤딩에서 ✎로 수정) */}
           {step === 0 && (
-            <>
-              <Card className="p-5 mb-4 space-y-4">
-                <Field label="제목 (저장용)">
-                  <input className={inputClass} value={draft.title} onChange={(e) => patchDraft({ title: e.target.value })} />
-                </Field>
-                <Field label="테마">
-                  <div className="flex flex-wrap gap-2">
-                    {THEMES.map((tm) => (
-                      <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-ink" : "border-line"}`}>
-                        <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
-                        {tm.name}
+            <Card className="p-5 mb-4">
+              <Field label="테마">
+                <div className="flex flex-wrap gap-2">
+                  {THEMES.map((tm) => (
+                    <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-ink" : "border-line"}`}>
+                      <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
+                      {tm.name}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            </Card>
+          )}
+
+          {/* 왼쪽: 페이지 네비 + 미리보기 + 비율을 하나의 카드로 · 오른쪽: 텍스트/사진 편집 */}
+          <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+            <div className="order-1">
+              {step === 0 ? (
+                <Card className="p-4">
+                  {/* 페이지 네비 */}
+                  <div className="text-xs text-muted mb-2">페이지 ({draft.pages.length}장) · 편집/미리보기 함께 이동</div>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {draft.pages.map((_, i) => (
+                      <button key={i} onClick={() => setActivePage(i)} className={`w-10 h-10 rounded-lg text-sm font-medium ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft"}`}>
+                        {i + 1}
                       </button>
                     ))}
                   </div>
-                </Field>
-              </Card>
-              {/* 페이지 네비 — 전체폭 */}
-              <Card className="p-4 mb-4">
-                <div className="text-xs text-muted mb-2">페이지 ({draft.pages.length}장) · 편집/미리보기 함께 이동</div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {draft.pages.map((_, i) => (
-                    <button key={i} onClick={() => setActivePage(i)} className={`w-10 h-10 rounded-lg text-sm font-medium ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft"}`}>
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-              </Card>
-            </>
-          )}
-
-          {/* 미리보기 왼쪽 · 편집 오른쪽 */}
-          <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
-            <div className="order-1 lg:sticky lg:top-20 space-y-3">
-              {/* 비율 — 미리보기 위 */}
-              <Card className="p-3 flex items-center gap-3">
-                <span className="text-xs text-muted shrink-0">비율</span>
-                <div className="flex gap-2">
-                  {([
-                    ["1:1", "정사각", "1:1"],
-                    ["3:4", "세로형", "3:4"],
-                  ] as const).map(([val, label, sub]) => (
-                    <button key={val} type="button" onClick={() => patchDraft({ ratio: val })} className={`px-3 py-1.5 rounded-full border text-sm ${draft.ratio === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}>
-                      {label} <span className="text-muted">{sub}</span>
-                    </button>
-                  ))}
-                </div>
-              </Card>
-              <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} active={activePage} />
+                  {/* 미리보기 */}
+                  <div className="border-t border-line mt-4 pt-4">
+                    <Preview bare pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} active={activePage} />
+                  </div>
+                  {/* 비율 */}
+                  <div className="border-t border-line mt-4 pt-4 flex items-center gap-3">
+                    <span className="text-xs text-muted shrink-0">비율</span>
+                    <div className="flex gap-2">
+                      {([
+                        ["1:1", "정사각", "1:1"],
+                        ["3:4", "세로형", "3:4"],
+                      ] as const).map(([val, label, sub]) => (
+                        <button key={val} type="button" onClick={() => patchDraft({ ratio: val })} className={`px-3 py-1.5 rounded-full border text-sm ${draft.ratio === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}>
+                          {label} <span className="text-muted">{sub}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+              ) : (
+                <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} active={activePage} />
+              )}
             </div>
             <div className="min-w-0 order-2">
               {step === 0 && (
@@ -351,6 +375,7 @@ function StatusBadge({ status }: { status: CardNews["status"] }) {
   return <Badge tone={tone as "teal" | "amber" | "muted"}>{status}</Badge>;
 }
 
+// 우측: 1장 내용(헤드라인·본문·사진 업로드·사진 배치·사진 설명) + 캡션/해시태그/CTA
 function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsText, patchDraft, patchPage, uploadPhoto, removePhoto }: {
   draft: { title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string; photoStyle: "top" | "bg" };
   photo: boolean;
@@ -370,7 +395,7 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
         <div className="text-sm font-medium mb-3">{activePage + 1}장 내용</div>
         {pg && (
           <div className="space-y-3">
-            <Field label="헤드라인">
+            <Field label="헤드라인" hint="엔터로 줄바꿈하면 카드에도 그대로 적용돼요">
               <textarea className={inputClass} rows={2} value={pg.headline} onChange={(e) => patchPage(activePage, { headline: e.target.value })} />
             </Field>
             <Field label="본문">
@@ -694,7 +719,7 @@ function PublishTab({ card, draft, photo, photoStyle, ratio, photos, niche, hand
   );
 }
 
-function Preview({ pages, theme, brandColor, photo, photoStyle, ratio, photos, niche, handle, active }: {
+function Preview({ pages, theme, brandColor, photo, photoStyle, ratio, photos, niche, handle, active, bare = false }: {
   pages: CardPage[];
   theme: string;
   brandColor: string;
@@ -705,6 +730,7 @@ function Preview({ pages, theme, brandColor, photo, photoStyle, ratio, photos, n
   niche: string;
   handle: string;
   active: number;
+  bare?: boolean; // true면 Card 래퍼 없이 내용만 (상위 카드에 합쳐 쓸 때)
 }) {
   const idx = Math.min(active, pages.length - 1);
   const page = pages[idx];
@@ -712,16 +738,17 @@ function Preview({ pages, theme, brandColor, photo, photoStyle, ratio, photos, n
   const cardH = ratio === "3:4" ? 1440 : 1080;
   const DISPLAY_W = 336; // 미리보기 패널(380px·p-4) 안에 들어오는 폭 → 넘침 방지
   const scale = DISPLAY_W / cardW;
-  return (
-    <Card className="p-4">
+  const inner = (
+    <>
       <div className="text-xs text-muted mb-2">미리보기 · {ratio === "3:4" ? "세로 3:4" : "정사각 1:1"}</div>
       <div className="mx-auto rounded-xl overflow-hidden border border-line" style={{ width: DISPLAY_W, height: Math.round(cardH * scale) }}>
         <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: cardW, height: cardH }}>
           {page && <CardCanvas page={page} index={idx} total={pages.length} themeKey={theme} brandColor={brandColor} photo={photo} photoStyle={photoStyle} ratio={ratio} photoDataUrl={photos[idx]} niche={niche} handle={handle} />}
         </div>
       </div>
-    </Card>
+    </>
   );
+  return bare ? inner : <Card className="p-4">{inner}</Card>;
 }
 
 // ── 릴스 에디터 (대본 + 영상 업로드 + 검수 + 발행, 단일 화면) ────────────────────

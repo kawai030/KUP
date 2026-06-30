@@ -167,8 +167,8 @@ export default function PlansPage() {
                   <tr key={c.id} className="border-b border-line/60 align-top">
                     <td className="py-3 px-4 text-muted">{i + 1}</td>
                     <td className="py-3 px-3">
-                      <Badge tone={c.format === "릴스" ? "rose" : c.format === "사진첨부형 카드뉴스" ? "amber" : "muted"}>
-                        {c.format === "사진첨부형 카드뉴스" ? "사진첨부형" : c.format}
+                      <Badge tone={c.format === "릴스" ? "rose" : "muted"}>
+                        {c.format === "릴스" ? "릴스" : "게시물"}
                       </Badge>
                     </td>
                     <td className="py-3 px-3">{c.pageCount}장</td>
@@ -217,19 +217,24 @@ export default function PlansPage() {
               <input className={inputClass} value={form.topicTitle} onChange={(e) => setForm((f) => ({ ...f, topicTitle: e.target.value }))} placeholder="예: 이번 주 신메뉴 출시 알림" />
             </Field>
             <Field label="형식">
-              <div className="grid grid-cols-3 gap-2">
-                {(["카드뉴스", "사진첨부형 카드뉴스", "릴스"] as CardFormat[]).map((fmt) => (
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  ["카드뉴스", "게시물"],
+                  ["릴스", "릴스"],
+                ] as [CardFormat, string][]).map(([fmt, label]) => (
                   <button
                     key={fmt}
                     onClick={() => setForm((f) => ({ ...f, format: fmt }))}
                     className={`rounded-xl border px-2 py-2 text-sm ${form.format === fmt ? "border-ink bg-paper-2/50" : "border-line text-ink-soft"}`}
                   >
-                    {fmt === "사진첨부형 카드뉴스" ? "사진첨부형" : fmt}
+                    {label}
                   </button>
                 ))}
               </div>
-              {form.format === "릴스" && (
+              {form.format === "릴스" ? (
                 <p className="text-xs text-muted mt-1.5">릴스는 대본·캡션만 만들고, 영상은 직접 업로드해요(제작 단계 없음).</p>
+              ) : (
+                <p className="text-xs text-muted mt-1.5">게시물은 본문 생성 후, 편집에서 장마다 사진을 첨부하고 배치(상단/배경)를 고를 수 있어요.</p>
               )}
             </Field>
             <div className="grid grid-cols-2 gap-3">

@@ -8,7 +8,17 @@ import { Generating } from "@/components/Generating";
 import { CardCanvas, THEMES, getTheme } from "@/components/CardCanvas";
 import { activeIgHandle, findIgAccount, type CardNews, type CardPage, type IgAccount, type PublicUser, type ReviewFlag } from "@/lib/types";
 
-type Tab = "편집" | "검수" | "발행";
+const STEPS = ["편집", "검수", "업로드"] as const;
+type Step = 0 | 1 | 2;
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result as string);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
 
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,14 +26,33 @@ export default function EditorPage() {
   const [card, setCard] = useState<CardNews | null>(null);
   const [user, setUser] = useState<PublicUser | null>(null);
   const [publicBase, setPublicBase] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("편집");
+  const [step, setStep] = useState<Step>(0);
   const [activePage, setActivePage] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [producing, setProducing] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const [stepMsg, setStepMsg] = useState("");
   const [hashtagsText, setHashtagsText] = useState("");
+  const [photos, setPhotos] = useState<Record<number, string>>({});
 
   const [draft, setDraft] = useState<{ title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string } | null>(null);
+
+  const loadPhotos = useCallback(async (cardId: string) => {
+    try {
+      const { pages } = await api<{ pages: number[] }>(`/api/cards/${cardId}/photos`);
+      const entries = await Promise.all(
+        pages.map(async (p) => {
+          const res = await fetch(`/api/cards/${cardId}/photo/${p}`);
+          if (!res.ok) return null;
+          return [p, await blobToDataUrl(await res.blob())] as [number, string];
+        })
+      );
+      setPhotos(Object.fromEntries(entries.filter(Boolean) as [number, string][]));
+    } catch {
+      /* noop */
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const [{ card }, me] = await Promise.all([
@@ -35,7 +64,8 @@ export default function EditorPage() {
     setPublicBase(me.publicBaseUrl);
     setDraft({ title: card.title, pages: card.pages.map((p) => ({ ...p })), caption: card.caption, cta: card.cta, theme: card.theme, brandColor: card.brandColor });
     setHashtagsText(card.hashtags.join(" "));
-  }, [id]);
+    if (card.format !== "릴스") loadPhotos(id); // 카드뉴스·사진첨부형 모두 첨부 사진 지원
+  }, [id, loadPhotos]);
 
   useEffect(() => {
     load();
@@ -52,7 +82,7 @@ export default function EditorPage() {
     }
   }
 
-  async function save() {
+  const save = useCallback(async () => {
     if (!draft) return;
     setSaving(true);
     try {
@@ -73,7 +103,14 @@ export default function EditorPage() {
     } finally {
       setSaving(false);
     }
-  }
+  }, [draft, hashtagsText, id]);
+
+  // 실시간 자동 저장 (디바운스)
+  useEffect(() => {
+    if (!dirty) return;
+    const t = setTimeout(() => void save(), 900);
+    return () => clearTimeout(t);
+  }, [dirty, save]);
 
   function patchDraft(p: Partial<NonNullable<typeof draft>>) {
     setDraft((d) => (d ? { ...d, ...p } : d));
@@ -82,6 +119,54 @@ export default function EditorPage() {
   function patchPage(i: number, p: Partial<CardPage>) {
     setDraft((d) => (d ? { ...d, pages: d.pages.map((pg, idx) => (idx === i ? { ...pg, ...p } : pg)) } : d));
     setDirty(true);
+  }
+
+  async function uploadPhoto(page: number, file: File) {
+    const url = await blobToDataUrl(file);
+    setPhotos((p) => ({ ...p, [page]: url })); // 즉시 미리보기
+    const fd = new FormData();
+    fd.append("photo", file);
+    await fetch(`/api/cards/${id}/photo/${page}`, { method: "PUT", body: fd });
+  }
+  async function removePhoto(page: number) {
+    await api(`/api/cards/${id}/photo/${page}`, { method: "DELETE" });
+    setPhotos((p) => {
+      const n = { ...p };
+      delete n[page];
+      return n;
+    });
+  }
+
+  // 스텝 '확인' — 편집→검수(검수 실행), 검수→업로드(승인 통과)
+  async function confirmStep() {
+    setStepMsg("");
+    if (!card) return;
+    if (step === 0) {
+      setAdvancing(true);
+      try {
+        if (dirty) await save();
+        const { card: c } = await api<{ card: CardNews }>(`/api/cards/${id}/review`, { method: "POST" });
+        setCard(c);
+        setStep(1);
+      } finally {
+        setAdvancing(false);
+      }
+    } else if (step === 1) {
+      if (card.reviewFlags.some((f) => !f.resolved)) {
+        setStepMsg("미해결 검수 항목을 모두 확인해 주세요.");
+        return;
+      }
+      setAdvancing(true);
+      try {
+        const { card: c } = await api<{ card: CardNews }>(`/api/cards/${id}/review`, { method: "PATCH", body: { action: "pass" } });
+        setCard(c);
+        setStep(2);
+      } catch (e) {
+        setStepMsg((e as Error).message);
+      } finally {
+        setAdvancing(false);
+      }
+    }
   }
 
   if (!card || !draft || !user) return <div className="py-20 text-center text-muted">불러오는 중…</div>;
@@ -99,6 +184,7 @@ export default function EditorPage() {
   const isReels = card.format === "릴스";
   const isPlan = (card.status === "기획중" || card.status === "기획완료") && !isReels;
   const photo = card.format === "사진첨부형 카드뉴스";
+  const stepperUI = !isPlan && !isReels;
 
   return (
     <div>
@@ -115,17 +201,11 @@ export default function EditorPage() {
             <Badge tone="muted">{card.generatedBy === "ai" ? "Claude" : card.generatedBy === "template" ? "템플릿" : "기획"}</Badge>
           </div>
         </div>
-        {!isPlan && (
-          <div className="flex items-center gap-2">
-            {dirty && <span className="text-xs text-amber">저장 안 됨</span>}
-            <Button variant="outline" size="sm" onClick={save} disabled={saving || !dirty}>
-              {saving ? "저장 중…" : "변경 저장"}
-            </Button>
-          </div>
+        {stepperUI && (
+          <span className="text-xs text-muted">{saving ? "저장 중…" : dirty ? "수정 중…" : "자동 저장됨 ✓"}</span>
         )}
       </div>
 
-      {/* 릴스: 대본 + 영상 업로드 + 발행 (단일 화면) */}
       {isReels ? (
         <ReelsEditor
           card={card}
@@ -159,32 +239,96 @@ export default function EditorPage() {
             <Button className="mt-5" onClick={produce}>제작하러가기 →</Button>
           </Card>
           <div className="lg:sticky lg:top-20">
-            <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} niche={niche} handle={handle} active={activePage} setActive={setActivePage} />
+            <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photos={photos} niche={niche} handle={handle} active={activePage} />
           </div>
         </div>
       ) : (
         <>
-          <div className="flex gap-1 mb-5 bg-paper-2/60 p-1 rounded-xl w-fit">
-            {(["편집", "검수", "발행"] as Tab[]).map((t) => (
-              <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${tab === t ? "bg-card shadow-sm text-ink" : "text-ink-soft"}`}>
-                {t}
-                {t === "검수" && card.reviewFlags.some((f) => !f.resolved) && <span className="ml-1.5 inline-block w-2 h-2 rounded-full bg-coral align-middle" />}
-              </button>
-            ))}
+          {/* 스텝: 1 편집 · 2 검수 · 3 업로드 */}
+          <div className="flex items-center gap-1 sm:gap-2 mb-5">
+            {STEPS.map((label, i) => {
+              const cur = i === step;
+              const reachable = i <= step;
+              return (
+                <div key={label} className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={() => reachable && setStep(i as Step)}
+                    disabled={!reachable}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${cur ? "bg-ink text-paper" : reachable ? "bg-paper-2 text-ink" : "text-muted"}`}
+                  >
+                    <span className={`w-5 h-5 rounded-full grid place-items-center text-xs ${cur ? "bg-paper text-ink" : "bg-card border border-line"}`}>{i + 1}</span>
+                    {label}
+                  </button>
+                  {i < 2 && <span className="w-5 h-px bg-line" />}
+                </div>
+              );
+            })}
           </div>
 
-          <div className="grid lg:grid-cols-[1fr_400px] gap-6 items-start">
-            <div className="min-w-0 order-2 lg:order-1">
-              {tab === "편집" && (
-                <EditTab draft={draft} photo={photo} hashtagsText={hashtagsText} setHashtagsText={(v) => { setHashtagsText(v); setDirty(true); }} patchDraft={patchDraft} patchPage={patchPage} activePage={activePage} setActivePage={setActivePage} />
-              )}
-              {tab === "검수" && <ReviewTab card={card} dirty={dirty} onChange={setCard} onSaveNeeded={save} />}
-              {tab === "발행" && <PublishTab card={card} draft={draft} photo={photo} niche={niche} handle={handle} account={activeAccount} publicBase={publicBase} reload={load} />}
+          {/* 1. 제목 + 테마 + 브랜드 컬러 — 위에 전체폭 카드 */}
+          {step === 0 && (
+            <>
+              <Card className="p-5 mb-4 space-y-4">
+                <Field label="제목 (저장용)">
+                  <input className={inputClass} value={draft.title} onChange={(e) => patchDraft({ title: e.target.value })} />
+                </Field>
+                <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
+                  <Field label="테마">
+                    <div className="flex flex-wrap gap-2">
+                      {THEMES.map((tm) => (
+                        <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-ink" : "border-line"}`}>
+                          <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
+                          {tm.name}
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                  <Field label="브랜드 컬러" hint="스포이드로 찍어 카드에 바로 반영">
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={draft.brandColor} onChange={(e) => patchDraft({ brandColor: e.target.value })} className="w-12 h-10 rounded-lg border border-line p-1 cursor-pointer" />
+                      <input className={`${inputClass} w-24 font-mono text-xs uppercase`} value={draft.brandColor} onChange={(e) => { const v = e.target.value; if (/^#?[0-9a-fA-F]{0,6}$/.test(v)) patchDraft({ brandColor: v.startsWith("#") ? v : `#${v}` }); }} />
+                    </div>
+                  </Field>
+                </div>
+              </Card>
+              {/* 페이지 네비 — 전체폭 */}
+              <Card className="p-4 mb-4">
+                <div className="text-xs text-muted mb-2">페이지 ({draft.pages.length}장) · 편집/미리보기 함께 이동</div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {draft.pages.map((_, i) => (
+                    <button key={i} onClick={() => setActivePage(i)} className={`w-10 h-10 rounded-lg text-sm font-medium ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft"}`}>
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            </>
+          )}
+
+          {/* 미리보기 왼쪽 · 편집 오른쪽 */}
+          <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+            <div className="order-1 lg:sticky lg:top-20">
+              <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photos={photos} niche={niche} handle={handle} active={activePage} />
             </div>
-            <div className="order-1 lg:order-2 lg:sticky lg:top-20">
-              <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} niche={niche} handle={handle} active={activePage} setActive={setActivePage} />
+            <div className="min-w-0 order-2">
+              {step === 0 && (
+                <EditLeft draft={draft} photo={photo} photos={photos} activePage={activePage} hashtagsText={hashtagsText} setHashtagsText={(v) => { setHashtagsText(v); setDirty(true); }} patchDraft={patchDraft} patchPage={patchPage} uploadPhoto={uploadPhoto} removePhoto={removePhoto} />
+              )}
+              {step === 1 && <ReviewTab card={card} dirty={dirty} onChange={setCard} onSaveNeeded={save} />}
+              {step === 2 && <PublishTab card={card} draft={draft} photo={photo} photos={photos} niche={niche} handle={handle} account={activeAccount} publicBase={publicBase} reload={load} />}
             </div>
           </div>
+
+          {/* 하단 확인 버튼 */}
+          {step < 2 && (
+            <div className="mt-6 flex items-center justify-end gap-3 flex-wrap">
+              {stepMsg && <span className="text-sm text-coral mr-auto">{stepMsg}</span>}
+              {step > 0 && <Button variant="ghost" onClick={() => setStep((step - 1) as Step)}>← 이전</Button>}
+              <Button onClick={confirmStep} disabled={advancing}>
+                {advancing ? "처리 중…" : step === 0 ? "확인 — 검수로 →" : "확인 — 승인하고 업로드로 →"}
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -199,58 +343,51 @@ function StatusBadge({ status }: { status: CardNews["status"] }) {
   return <Badge tone={tone as "teal" | "amber" | "muted"}>{status}</Badge>;
 }
 
-function EditTab({ draft, photo, hashtagsText, setHashtagsText, patchDraft, patchPage, activePage, setActivePage }: {
+function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsText, patchDraft, patchPage, uploadPhoto, removePhoto }: {
   draft: { title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string };
   photo: boolean;
+  photos: Record<number, string>;
+  activePage: number;
   hashtagsText: string;
   setHashtagsText: (v: string) => void;
   patchDraft: (p: Partial<{ title: string; caption: string; cta: string; theme: string; brandColor: string }>) => void;
   patchPage: (i: number, p: Partial<CardPage>) => void;
-  activePage: number;
-  setActivePage: (i: number) => void;
+  uploadPhoto: (page: number, file: File) => Promise<void>;
+  removePhoto: (page: number) => Promise<void>;
 }) {
   const pg = draft.pages[activePage];
   return (
     <div className="space-y-5">
-      <Card className="p-5 space-y-4">
-        <Field label="제목 (저장용)">
-          <input className={inputClass} value={draft.title} onChange={(e) => patchDraft({ title: e.target.value })} />
-        </Field>
-        <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-          <Field label="테마">
-            <div className="flex flex-wrap gap-2">
-              {THEMES.map((t) => (
-                <button key={t.key} onClick={() => patchDraft({ theme: t.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === t.key ? "border-ink" : "border-line"}`}>
-                  <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(t.key).bg }} />
-                  {t.name}
-                </button>
-              ))}
-            </div>
-          </Field>
-          <Field label="브랜드 컬러">
-            <input type="color" value={draft.brandColor} onChange={(e) => patchDraft({ brandColor: e.target.value })} className="w-12 h-10 rounded-lg border border-line p-1 cursor-pointer" />
-          </Field>
-        </div>
-      </Card>
-
       <Card className="p-5">
-        <div className="flex gap-1.5 flex-wrap mb-4">
-          {draft.pages.map((_, i) => (
-            <button key={i} onClick={() => setActivePage(i)} className={`w-9 h-9 rounded-lg text-sm font-medium ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft"}`}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
+        <div className="text-sm font-medium mb-3">{activePage + 1}장 내용</div>
         {pg && (
           <div className="space-y-3">
-            <Field label={`${activePage + 1}장 헤드라인`}>
+            <Field label="헤드라인">
               <textarea className={inputClass} rows={2} value={pg.headline} onChange={(e) => patchPage(activePage, { headline: e.target.value })} />
             </Field>
             <Field label="본문">
               <textarea className={inputClass} rows={3} value={pg.body} onChange={(e) => patchPage(activePage, { body: e.target.value })} />
             </Field>
+            <Field label="사진 업로드" hint={photo ? "이 장의 메인 사진 (정사각/세로 권장)" : "이 장에 넣을 사진 (선택)"}>
+              {photos[activePage] ? (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photos[activePage]} alt="" className="w-20 h-20 rounded-lg object-cover border border-line" />
+                  <label className="cursor-pointer text-sm text-coral hover:underline">
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(activePage, f); e.target.value = ""; }} />
+                    교체
+                  </label>
+                  <button type="button" onClick={() => removePhoto(activePage)} className="text-sm text-muted hover:text-ink">삭제</button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center h-24 rounded-xl border-2 border-dashed border-line cursor-pointer text-sm text-muted hover:border-ink/30">
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPhoto(activePage, f); e.target.value = ""; }} />
+                  + 사진 업로드
+                </label>
+              )}
+            </Field>
             {photo && (
-              <Field label="사진 설명" hint="이 장에 넣을 사진">
+              <Field label="사진 설명(메모)" hint="선택 — 사진이 없을 때 안내 문구로 표시돼요">
                 <input className={inputClass} value={pg.photoNote ?? ""} onChange={(e) => patchPage(activePage, { photoNote: e.target.value })} placeholder="예: 신메뉴 클로즈업" />
               </Field>
             )}
@@ -289,15 +426,6 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded }: { card: CardNews; di
   async function toggleFlag(flag: ReviewFlag) {
     const { card: c } = await api<{ card: CardNews }>(`/api/cards/${card.id}/review`, { method: "PATCH", body: { flagId: flag.id, resolved: !flag.resolved } });
     onChange(c);
-  }
-  async function pass() {
-    setBusy(true);
-    try {
-      const { card: c } = await api<{ card: CardNews }>(`/api/cards/${card.id}/review`, { method: "PATCH", body: { action: "pass" } });
-      onChange(c);
-    } finally {
-      setBusy(false);
-    }
   }
 
   const passed = card.status === "제작완료" || card.status === "예약업로드" || card.status === "업로드완료";
@@ -347,9 +475,9 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded }: { card: CardNews; di
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="font-medium">검수 통과 · 사용자 승인</div>
-            <p className="text-sm text-ink-soft">{allResolved ? "모든 항목을 확인했어요. 통과하면 발행 단계로 넘어가요." : "미해결 항목을 모두 체크해야 통과할 수 있어요."}</p>
+            <p className="text-sm text-ink-soft">{passed ? "이미 통과했어요." : allResolved ? "모든 항목을 확인했어요. 아래 ‘확인 — 승인하고 업로드로’ 버튼으로 통과하세요." : "미해결 항목을 모두 체크해야 통과할 수 있어요."}</p>
           </div>
-          {passed ? <Badge tone="teal">✓ 통과됨</Badge> : <Button onClick={pass} disabled={!allResolved || busy}>승인하고 통과 →</Button>}
+          {passed ? <Badge tone="teal">✓ 통과됨</Badge> : <Badge tone={allResolved ? "teal" : "amber"}>{allResolved ? "승인 준비됨" : `${unresolved.length}건 남음`}</Badge>}
         </div>
       </Card>
 
@@ -370,10 +498,11 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded }: { card: CardNews; di
   );
 }
 
-function PublishTab({ card, draft, photo, niche, handle, account, publicBase, reload }: {
+function PublishTab({ card, draft, photo, photos, niche, handle, account, publicBase, reload }: {
   card: CardNews;
   draft: { pages: CardPage[]; theme: string; brandColor: string };
   photo: boolean;
+  photos: Record<number, string>;
   niche: string;
   handle: string;
   account?: IgAccount;
@@ -459,7 +588,7 @@ function PublishTab({ card, draft, photo, niche, handle, account, publicBase, re
       <div style={{ position: "fixed", left: -99999, top: 0 }} aria-hidden>
         <div ref={exportRef}>
           {exportIdx !== null && draft.pages[exportIdx] && (
-            <CardCanvas page={draft.pages[exportIdx]} index={exportIdx} total={draft.pages.length} themeKey={draft.theme} brandColor={draft.brandColor} photo={photo} niche={niche} handle={handle} />
+            <CardCanvas page={draft.pages[exportIdx]} index={exportIdx} total={draft.pages.length} themeKey={draft.theme} brandColor={draft.brandColor} photo={photo} photoDataUrl={photos[exportIdx]} niche={niche} handle={handle} />
           )}
         </div>
       </div>
@@ -536,34 +665,26 @@ function PublishTab({ card, draft, photo, niche, handle, account, publicBase, re
   );
 }
 
-function Preview({ pages, theme, brandColor, photo, niche, handle, active, setActive }: {
+function Preview({ pages, theme, brandColor, photo, photos, niche, handle, active }: {
   pages: CardPage[];
   theme: string;
   brandColor: string;
   photo: boolean;
+  photos: Record<number, string>;
   niche: string;
   handle: string;
   active: number;
-  setActive: (i: number) => void;
 }) {
   const SCALE = 0.342;
   const idx = Math.min(active, pages.length - 1);
   const page = pages[idx];
   return (
     <Card className="p-4">
-      <div className="text-xs text-muted mb-2 flex items-center justify-between">
-        <span>미리보기</span>
-        <span>{idx + 1} / {pages.length}</span>
-      </div>
+      <div className="text-xs text-muted mb-2">미리보기</div>
       <div className="mx-auto rounded-xl overflow-hidden border border-line" style={{ width: 1080 * SCALE, height: 1080 * SCALE }}>
         <div style={{ transform: `scale(${SCALE})`, transformOrigin: "top left", width: 1080, height: 1080 }}>
-          {page && <CardCanvas page={page} index={idx} total={pages.length} themeKey={theme} brandColor={brandColor} photo={photo} niche={niche} handle={handle} />}
+          {page && <CardCanvas page={page} index={idx} total={pages.length} themeKey={theme} brandColor={brandColor} photo={photo} photoDataUrl={photos[idx]} niche={niche} handle={handle} />}
         </div>
-      </div>
-      <div className="flex justify-center gap-1.5 mt-3 flex-wrap">
-        {pages.map((_, i) => (
-          <button key={i} onClick={() => setActive(i)} className={`w-2.5 h-2.5 rounded-full ${i === idx ? "bg-coral" : "bg-paper-2"}`} />
-        ))}
       </div>
     </Card>
   );

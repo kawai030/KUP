@@ -26,6 +26,16 @@ export function getTheme(key: string): CardTheme {
   return THEMES.find((t) => t.key === key) ?? THEMES[0];
 }
 
+// hex(#rgb/#rrggbb) → rgba 문자열 (인포그래픽 틴트용, 3자리도 허용)
+function tint(hex: string, a: number): string {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex ?? "");
+  if (!m) return `rgba(120,120,120,${a})`;
+  let h = m[1];
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const n = parseInt(h, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
 export function CardCanvas({
   page,
   index,
@@ -35,6 +45,7 @@ export function CardCanvas({
   handle,
   brandColor,
   photo = false,
+  photoDataUrl,
 }: {
   page: CardPage;
   index: number;
@@ -44,32 +55,43 @@ export function CardCanvas({
   handle: string;
   brandColor?: string;
   photo?: boolean;
+  photoDataUrl?: string;
 }) {
   const t = getTheme(themeKey);
   const accent = brandColor || t.accent;
   const isFirst = index === 0;
-  const isLast = index === total - 1;
+  const hasPhoto = Boolean(photoDataUrl);
+  const showVisual = hasPhoto || photo; // 사진첨부형이거나 사진이 올라간 카드 → 비주얼 영역
 
-  const Header = (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ fontSize: 30, fontWeight: 700, color: t.fg, letterSpacing: -0.5 }}>@{handle || "myaccount"}</div>
-      <div style={{ fontSize: 26, fontWeight: 600, background: t.chip, color: t.chipFg, borderRadius: 999, padding: "10px 22px" }}>
-        {index + 1} / {total}
-      </div>
-    </div>
-  );
-
-  const Dots = (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ display: "flex", gap: 10 }}>
-        {Array.from({ length: total }).map((_, i) => (
-          <div
-            key={i}
-            style={{ width: i === index ? 36 : 12, height: 12, borderRadius: 999, background: i === index ? accent : t.sub, opacity: i === index ? 1 : 0.4 }}
-          />
+  // 사진이 없을 때: 대시 박스 대신 인포그래픽 비주얼(브랜드 컬러 기반)
+  const Infographic = (
+    <div
+      style={{
+        flex: 1,
+        borderRadius: 32,
+        background: `linear-gradient(135deg, ${tint(accent, 0.16)}, ${tint(accent, 0.04)})`,
+        border: `2px solid ${tint(accent, 0.22)}`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 40,
+        padding: 64,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ position: "absolute", top: -60, right: -60, width: 240, height: 240, borderRadius: 999, background: tint(accent, 0.14) }} />
+      <div style={{ position: "absolute", bottom: -50, left: -50, width: 180, height: 180, borderRadius: 999, background: tint(accent, 0.1) }} />
+      {/* 미니 바차트 느낌의 인포그래픽 */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 20, height: 200, position: "relative" }}>
+        {[0.42, 0.66, 0.52, 1, 0.78].map((h, i) => (
+          <div key={i} style={{ width: 50, height: Math.round(200 * h), borderRadius: 14, background: i === 3 ? accent : tint(accent, 0.5) }} />
         ))}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 600, color: t.sub }}>{isLast ? "저장 · 공유 🔖" : "넘기기 →"}</div>
+      <div style={{ fontSize: 36, fontWeight: 600, color: t.sub, textAlign: "center", wordBreak: "keep-all", position: "relative" }}>
+        {page.photoNote || "사진을 올리면 여기에 표시돼요 · 비우면 인포그래픽"}
+      </div>
     </div>
   );
 
@@ -84,47 +106,44 @@ export function CardCanvas({
         padding: 84,
         display: "flex",
         flexDirection: "column",
+        gap: 36,
         fontFamily: 'ui-sans-serif, system-ui, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", sans-serif',
         overflow: "hidden",
         boxSizing: "border-box",
       }}
     >
-      {Header}
+      {/* 비주얼(사진/인포그래픽) — 크게 */}
+      {showVisual &&
+        (photoDataUrl ? (
+          <div style={{ flex: 1, borderRadius: 32, overflow: "hidden", display: "flex" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoDataUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          </div>
+        ) : (
+          Infographic
+        ))}
 
-      {photo ? (
-        // 사진첨부형: 사진 프레임(설명) + 그 위에 짧은 카피
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 28, justifyContent: "center" }}>
-          <div
-            style={{
-              borderRadius: 28,
-              border: `4px dashed ${t.sub}`,
-              background: "rgba(0,0,0,0.04)",
-              minHeight: 360,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 40,
-              textAlign: "center",
-            }}
-          >
-            <div style={{ color: t.sub, fontSize: 34 }}>📷 {page.photoNote || "여기에 사진을 넣어요"}</div>
-          </div>
-          <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: isFirst ? 64 : 52, lineHeight: 1.15, fontWeight: 600, wordBreak: "keep-all" }}>
-            {page.headline}
-          </div>
-          {page.body && <div style={{ fontSize: 36, lineHeight: 1.5, color: t.sub, whiteSpace: "pre-wrap", wordBreak: "keep-all" }}>{page.body}</div>}
+      {/* 텍스트: 비주얼이 있으면 아래에, 없으면 가운데 크게 */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: showVisual ? 18 : 28,
+          ...(showVisual ? {} : { flex: 1, justifyContent: "center" }),
+        }}
+      >
+        <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: showVisual ? (isFirst ? 60 : 52) : isFirst ? 92 : 64, lineHeight: 1.14, fontWeight: 600, color: t.fg, wordBreak: "keep-all" }}>
+          {page.headline}
         </div>
-      ) : (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 32 }}>
-          {isFirst && <div style={{ fontSize: 30, fontWeight: 700, color: accent, letterSpacing: 1 }}>{niche || "오늘의 주제"} ✦</div>}
-          <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: isFirst ? 92 : 64, lineHeight: 1.12, fontWeight: 600, color: t.fg, wordBreak: "keep-all" }}>
-            {page.headline}
-          </div>
-          {page.body && <div style={{ fontSize: 40, lineHeight: 1.5, color: t.sub, whiteSpace: "pre-wrap", wordBreak: "keep-all" }}>{page.body}</div>}
-        </div>
-      )}
+        {page.body && (
+          <div style={{ fontSize: showVisual ? 34 : 40, lineHeight: 1.5, color: t.sub, whiteSpace: "pre-wrap", wordBreak: "keep-all" }}>{page.body}</div>
+        )}
+      </div>
 
-      {Dots}
+      {/* 아이디 — 우측 하단, 브랜드 컬러 */}
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+        <div style={{ fontSize: 30, fontWeight: 700, color: accent, letterSpacing: -0.5 }}>@{handle || "myaccount"}</div>
+      </div>
     </div>
   );
 }

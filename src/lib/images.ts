@@ -33,6 +33,39 @@ export function readCardImage(cardId: string, page: number): Buffer | null {
   return fs.readFileSync(file);
 }
 
+// ── 사용자 첨부 사진(사진첨부형 카드뉴스, 페이지별 원본) ──
+export function saveCardPhoto(cardId: string, page: number, buf: Buffer): void {
+  const dir = cardDir(cardId);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, `src_${Number(page)}.jpg`), buf);
+}
+export function readCardPhoto(cardId: string, page: number): Buffer | null {
+  const file = path.join(cardDir(cardId), `src_${Number(page)}.jpg`);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file);
+}
+export function deleteCardPhoto(cardId: string, page: number): void {
+  try {
+    fs.rmSync(path.join(cardDir(cardId), `src_${Number(page)}.jpg`), { force: true });
+  } catch {
+    /* noop */
+  }
+}
+export function listCardPhotoPages(cardId: string): number[] {
+  try {
+    const dir = cardDir(cardId);
+    if (!fs.existsSync(dir)) return [];
+    return fs
+      .readdirSync(dir)
+      .map((f) => f.match(/^src_(\d+)\.jpg$/))
+      .filter(Boolean)
+      .map((m) => Number(m![1]))
+      .sort((a, b) => a - b);
+  } catch {
+    return [];
+  }
+}
+
 // ── 릴스 영상 ──
 export function saveCardVideo(cardId: string, buf: Buffer): void {
   const dir = cardDir(cardId);

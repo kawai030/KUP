@@ -1,0 +1,16 @@
+node_modules
+.next
+.next-export
+.next-prodcheck
+.export-data
+.data
+exports
+.git
+.gitignore
+.env*.local
+.env
+npm-debug.log*
+Dockerfile
+docker-compose.yml
+README.md
+*.md

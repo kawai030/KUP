@@ -1,0 +1,15 @@
+# KUP 한 줄 실행:  docker compose up -d  →  http://localhost:3000
+# .env.local 을 먼저 만들어 두세요(키 등). 데이터는 ./.data 에 영구 저장됩니다.
+services:
+  kup:
+    build: .
+    container_name: kup
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - PORT=3000
+    volumes:
+      - ./.data:/app/.data
+    restart: unless-stopped

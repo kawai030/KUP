@@ -1,0 +1,19 @@
+import { readCardVideo } from "@/lib/images";
+
+type Ctx = { params: Promise<{ id: string }> };
+
+// 공개 라우트(인증 없음) — 인스타 Graph API 가 video_url 로 가져갈 수 있어야 한다.
+export async function GET(_req: Request, ctx: Ctx) {
+  const { id } = await ctx.params;
+  const buf = readCardVideo(id);
+  if (!buf) return new Response("not found", { status: 404 });
+  return new Response(new Uint8Array(buf), {
+    status: 200,
+    headers: {
+      "content-type": "video/mp4",
+      "content-length": String(buf.length),
+      "cache-control": "public, max-age=600",
+      "accept-ranges": "bytes",
+    },
+  });
+}

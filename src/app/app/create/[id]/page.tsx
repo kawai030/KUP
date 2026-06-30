@@ -36,7 +36,7 @@ export default function EditorPage() {
   const [hashtagsText, setHashtagsText] = useState("");
   const [photos, setPhotos] = useState<Record<number, string>>({});
 
-  const [draft, setDraft] = useState<{ title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string } | null>(null);
+  const [draft, setDraft] = useState<{ title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string; photoStyle: "top" | "bg"; ratio: "1:1" | "3:4" } | null>(null);
 
   const loadPhotos = useCallback(async (cardId: string) => {
     try {
@@ -62,7 +62,7 @@ export default function EditorPage() {
     setCard(card);
     setUser(me.user);
     setPublicBase(me.publicBaseUrl);
-    setDraft({ title: card.title, pages: card.pages.map((p) => ({ ...p })), caption: card.caption, cta: card.cta, theme: card.theme, brandColor: card.brandColor });
+    setDraft({ title: card.title, pages: card.pages.map((p) => ({ ...p })), caption: card.caption, cta: card.cta, theme: card.theme, brandColor: card.brandColor, photoStyle: card.photoStyle ?? "top", ratio: card.ratio ?? "1:1" });
     setHashtagsText(card.hashtags.join(" "));
     if (card.format !== "릴스") loadPhotos(id); // 카드뉴스·사진첨부형 모두 첨부 사진 지원
   }, [id, loadPhotos]);
@@ -95,6 +95,8 @@ export default function EditorPage() {
           cta: draft.cta,
           theme: draft.theme,
           brandColor: draft.brandColor,
+          photoStyle: draft.photoStyle,
+          ratio: draft.ratio,
           hashtags: hashtagsText.split(/[\s,]+/).map((h) => h.replace(/^#/, "")).filter(Boolean).map((h) => `#${h}`),
         },
       });
@@ -239,7 +241,7 @@ export default function EditorPage() {
             <Button className="mt-5" onClick={produce}>제작하러가기 →</Button>
           </Card>
           <div className="lg:sticky lg:top-20">
-            <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photos={photos} niche={niche} handle={handle} active={activePage} />
+            <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} active={activePage} />
           </div>
         </div>
       ) : (
@@ -265,31 +267,23 @@ export default function EditorPage() {
             })}
           </div>
 
-          {/* 1. 제목 + 테마 + 브랜드 컬러 — 위에 전체폭 카드 */}
+          {/* 1. 제목 + 테마 — 위에 전체폭 카드 */}
           {step === 0 && (
             <>
               <Card className="p-5 mb-4 space-y-4">
                 <Field label="제목 (저장용)">
                   <input className={inputClass} value={draft.title} onChange={(e) => patchDraft({ title: e.target.value })} />
                 </Field>
-                <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
-                  <Field label="테마">
-                    <div className="flex flex-wrap gap-2">
-                      {THEMES.map((tm) => (
-                        <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-ink" : "border-line"}`}>
-                          <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
-                          {tm.name}
-                        </button>
-                      ))}
-                    </div>
-                  </Field>
-                  <Field label="브랜드 컬러" hint="스포이드로 찍어 카드에 바로 반영">
-                    <div className="flex items-center gap-2">
-                      <input type="color" value={draft.brandColor} onChange={(e) => patchDraft({ brandColor: e.target.value })} className="w-12 h-10 rounded-lg border border-line p-1 cursor-pointer" />
-                      <input className={`${inputClass} w-24 font-mono text-xs uppercase`} value={draft.brandColor} onChange={(e) => { const v = e.target.value; if (/^#?[0-9a-fA-F]{0,6}$/.test(v)) patchDraft({ brandColor: v.startsWith("#") ? v : `#${v}` }); }} />
-                    </div>
-                  </Field>
-                </div>
+                <Field label="테마">
+                  <div className="flex flex-wrap gap-2">
+                    {THEMES.map((tm) => (
+                      <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-ink" : "border-line"}`}>
+                        <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
+                        {tm.name}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
               </Card>
               {/* 페이지 네비 — 전체폭 */}
               <Card className="p-4 mb-4">
@@ -307,15 +301,29 @@ export default function EditorPage() {
 
           {/* 미리보기 왼쪽 · 편집 오른쪽 */}
           <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
-            <div className="order-1 lg:sticky lg:top-20">
-              <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photos={photos} niche={niche} handle={handle} active={activePage} />
+            <div className="order-1 lg:sticky lg:top-20 space-y-3">
+              {/* 비율 — 미리보기 위 */}
+              <Card className="p-3 flex items-center gap-3">
+                <span className="text-xs text-muted shrink-0">비율</span>
+                <div className="flex gap-2">
+                  {([
+                    ["1:1", "정사각", "1:1"],
+                    ["3:4", "세로형", "3:4"],
+                  ] as const).map(([val, label, sub]) => (
+                    <button key={val} type="button" onClick={() => patchDraft({ ratio: val })} className={`px-3 py-1.5 rounded-full border text-sm ${draft.ratio === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}>
+                      {label} <span className="text-muted">{sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+              <Preview pages={draft.pages} theme={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} active={activePage} />
             </div>
             <div className="min-w-0 order-2">
               {step === 0 && (
                 <EditLeft draft={draft} photo={photo} photos={photos} activePage={activePage} hashtagsText={hashtagsText} setHashtagsText={(v) => { setHashtagsText(v); setDirty(true); }} patchDraft={patchDraft} patchPage={patchPage} uploadPhoto={uploadPhoto} removePhoto={removePhoto} />
               )}
               {step === 1 && <ReviewTab card={card} dirty={dirty} onChange={setCard} onSaveNeeded={save} />}
-              {step === 2 && <PublishTab card={card} draft={draft} photo={photo} photos={photos} niche={niche} handle={handle} account={activeAccount} publicBase={publicBase} reload={load} />}
+              {step === 2 && <PublishTab card={card} draft={draft} photo={photo} photoStyle={draft.photoStyle} ratio={draft.ratio} photos={photos} niche={niche} handle={handle} account={activeAccount} publicBase={publicBase} reload={load} />}
             </div>
           </div>
 
@@ -344,13 +352,13 @@ function StatusBadge({ status }: { status: CardNews["status"] }) {
 }
 
 function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsText, patchDraft, patchPage, uploadPhoto, removePhoto }: {
-  draft: { title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string };
+  draft: { title: string; pages: CardPage[]; caption: string; cta: string; theme: string; brandColor: string; photoStyle: "top" | "bg" };
   photo: boolean;
   photos: Record<number, string>;
   activePage: number;
   hashtagsText: string;
   setHashtagsText: (v: string) => void;
-  patchDraft: (p: Partial<{ title: string; caption: string; cta: string; theme: string; brandColor: string }>) => void;
+  patchDraft: (p: Partial<{ title: string; caption: string; cta: string; theme: string; brandColor: string; photoStyle: "top" | "bg" }>) => void;
   patchPage: (i: number, p: Partial<CardPage>) => void;
   uploadPhoto: (page: number, file: File) => Promise<void>;
   removePhoto: (page: number) => Promise<void>;
@@ -385,6 +393,24 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
                   + 사진 업로드
                 </label>
               )}
+            </Field>
+            <Field label="사진 배치" hint="카드 전체에 적용돼요">
+              <div className="flex gap-2">
+                {([
+                  ["top", "상단 사진", "사진 위 · 글씨 아래"],
+                  ["bg", "배경 사진", "사진 꽉 차게 · DIM 위에 글씨"],
+                ] as const).map(([val, label, desc]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => patchDraft({ photoStyle: val })}
+                    className={`flex-1 text-left px-3 py-2 rounded-xl border text-sm transition ${draft.photoStyle === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}
+                  >
+                    <div className="font-medium">{label}</div>
+                    <div className="text-xs text-muted mt-0.5">{desc}</div>
+                  </button>
+                ))}
+              </div>
             </Field>
             {photo && (
               <Field label="사진 설명(메모)" hint="선택 — 사진이 없을 때 안내 문구로 표시돼요">
@@ -498,10 +524,12 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded }: { card: CardNews; di
   );
 }
 
-function PublishTab({ card, draft, photo, photos, niche, handle, account, publicBase, reload }: {
+function PublishTab({ card, draft, photo, photoStyle, ratio, photos, niche, handle, account, publicBase, reload }: {
   card: CardNews;
   draft: { pages: CardPage[]; theme: string; brandColor: string };
   photo: boolean;
+  photoStyle: "top" | "bg";
+  ratio: "1:1" | "3:4";
   photos: Record<number, string>;
   niche: string;
   handle: string;
@@ -509,6 +537,7 @@ function PublishTab({ card, draft, photo, photos, niche, handle, account, public
   publicBase: string | null;
   reload: () => Promise<void>;
 }) {
+  const exportH = ratio === "3:4" ? 1440 : 1080;
   const exportRef = useRef<HTMLDivElement>(null);
   const [exportIdx, setExportIdx] = useState<number | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -529,8 +558,8 @@ function PublishTab({ card, draft, photo, photos, niche, handle, account, public
     await new Promise((r) => setTimeout(r, 140)); // 렌더 대기
     if (!exportRef.current) throw new Error("no node");
     return kind === "jpeg"
-      ? lib.toJpeg(exportRef.current, { width: 1080, height: 1080, pixelRatio: 1, skipFonts: true, quality: 0.92 })
-      : lib.toPng(exportRef.current, { width: 1080, height: 1080, pixelRatio: 1, skipFonts: true });
+      ? lib.toJpeg(exportRef.current, { width: 1080, height: exportH, pixelRatio: 1, skipFonts: true, quality: 0.92 })
+      : lib.toPng(exportRef.current, { width: 1080, height: exportH, pixelRatio: 1, skipFonts: true });
   }
 
   async function downloadAll() {
@@ -588,7 +617,7 @@ function PublishTab({ card, draft, photo, photos, niche, handle, account, public
       <div style={{ position: "fixed", left: -99999, top: 0 }} aria-hidden>
         <div ref={exportRef}>
           {exportIdx !== null && draft.pages[exportIdx] && (
-            <CardCanvas page={draft.pages[exportIdx]} index={exportIdx} total={draft.pages.length} themeKey={draft.theme} brandColor={draft.brandColor} photo={photo} photoDataUrl={photos[exportIdx]} niche={niche} handle={handle} />
+            <CardCanvas page={draft.pages[exportIdx]} index={exportIdx} total={draft.pages.length} themeKey={draft.theme} brandColor={draft.brandColor} photo={photo} photoStyle={photoStyle} ratio={ratio} photoDataUrl={photos[exportIdx]} niche={niche} handle={handle} />
           )}
         </div>
       </div>
@@ -665,25 +694,30 @@ function PublishTab({ card, draft, photo, photos, niche, handle, account, public
   );
 }
 
-function Preview({ pages, theme, brandColor, photo, photos, niche, handle, active }: {
+function Preview({ pages, theme, brandColor, photo, photoStyle, ratio, photos, niche, handle, active }: {
   pages: CardPage[];
   theme: string;
   brandColor: string;
   photo: boolean;
+  photoStyle: "top" | "bg";
+  ratio: "1:1" | "3:4";
   photos: Record<number, string>;
   niche: string;
   handle: string;
   active: number;
 }) {
-  const SCALE = 0.342;
   const idx = Math.min(active, pages.length - 1);
   const page = pages[idx];
+  const cardW = 1080;
+  const cardH = ratio === "3:4" ? 1440 : 1080;
+  const DISPLAY_W = 336; // 미리보기 패널(380px·p-4) 안에 들어오는 폭 → 넘침 방지
+  const scale = DISPLAY_W / cardW;
   return (
     <Card className="p-4">
-      <div className="text-xs text-muted mb-2">미리보기</div>
-      <div className="mx-auto rounded-xl overflow-hidden border border-line" style={{ width: 1080 * SCALE, height: 1080 * SCALE }}>
-        <div style={{ transform: `scale(${SCALE})`, transformOrigin: "top left", width: 1080, height: 1080 }}>
-          {page && <CardCanvas page={page} index={idx} total={pages.length} themeKey={theme} brandColor={brandColor} photo={photo} photoDataUrl={photos[idx]} niche={niche} handle={handle} />}
+      <div className="text-xs text-muted mb-2">미리보기 · {ratio === "3:4" ? "세로 3:4" : "정사각 1:1"}</div>
+      <div className="mx-auto rounded-xl overflow-hidden border border-line" style={{ width: DISPLAY_W, height: Math.round(cardH * scale) }}>
+        <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: cardW, height: cardH }}>
+          {page && <CardCanvas page={page} index={idx} total={pages.length} themeKey={theme} brandColor={brandColor} photo={photo} photoStyle={photoStyle} ratio={ratio} photoDataUrl={photos[idx]} niche={niche} handle={handle} />}
         </div>
       </div>
     </Card>
@@ -822,7 +856,8 @@ function ReelsEditor({
           <p className="text-xs text-muted mb-3">Edits·캡컷 등에서 편집한 세로 영상(MP4)을 올려주세요.</p>
           {hasVideo ? (
             <div>
-              <video src={`/api/render-video/${card.id}`} controls className="w-full rounded-xl bg-ink/5 aspect-[9/16] object-contain" />
+              {/* updatedAt 쿼리로 캐시 무효화 → 교체 시 새 영상이 바로 보이게 */}
+              <video key={card.updatedAt} src={`/api/render-video/${card.id}?v=${card.updatedAt}`} controls className="w-full rounded-xl bg-ink/5 aspect-[9/16] object-contain" />
               <div className="text-xs text-teal mt-2">업로드됨 ✓</div>
             </div>
           ) : (
@@ -831,7 +866,7 @@ function ReelsEditor({
             </div>
           )}
           <label className="mt-3 block">
-            <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadVideo(f); }} />
+            <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadVideo(f); e.target.value = ""; }} />
             <span className={`inline-flex w-full justify-center items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium cursor-pointer ${uploading ? "bg-paper-2 text-muted" : "bg-ink text-paper hover:bg-black"}`}>
               {uploading ? "업로드 중…" : hasVideo ? "영상 교체" : "영상 선택"}
             </span>

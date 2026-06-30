@@ -54,6 +54,13 @@ assert(body.includes("확인 — 검수로"), "하단 '확인 — 검수로' 버
 assert(body.includes("제목 (저장용)"), "제목 전체폭 카드");
 assert(body.includes("페이지 ("), "페이지 네비(전체폭)");
 assert(body.includes("사진 업로드"), "사진 업로드 UI (일반 카드뉴스에도 존재)");
+assert(body.includes("사진 배치") && body.includes("상단 사진") && body.includes("배경 사진"), "사진 배치 2가지(상단/배경) 토글 존재");
+assert(body.includes("비율") && body.includes("정사각") && body.includes("세로형"), "비율 2가지(정사각/세로형) 토글 존재");
+
+// 미리보기 카드가 패널 밖으로 넘치지 않는지 (박스 right ≤ 패널 right)
+const panel = await page.getByText("미리보기", { exact: false }).first().locator("xpath=..").boundingBox();
+const previewBox = await page.locator('div[style*="336px"]').first().boundingBox();
+assert(panel && previewBox && previewBox.x >= panel.x - 1 && previewBox.x + previewBox.width <= panel.x + panel.width + 1, "미리보기 카드가 패널 안에 들어옴(넘침 없음)");
 assert(body.includes("미리보기"), "미리보기 패널");
 const previewImgs = await page.locator('img[src^="data:image"]').count();
 assert(previewImgs >= 1, `업로드 사진이 일반 카드뉴스 <img>로 렌더(${previewImgs}개)`);
@@ -64,22 +71,15 @@ assert(!body.includes("저장 · 공유"), "'저장 · 공유' 제거됨");
 assert(!/\d\s*\/\s*\d/.test(body), "카드/패널 내 'n / m' 페이지번호 제거됨");
 assert(body.includes("자동 저장됨") || body.includes("수정 중") || body.includes("저장 중"), "자동저장 상태 표시");
 
-// 테마/브랜드 컬러가 '제목' 카드 안에 있는지
-assert(body.includes("테마") && body.includes("브랜드 컬러"), "테마·브랜드 컬러 컨트롤 존재");
+// 테마는 있고, 브랜드 컬러(스포이드)는 제거됨
+assert(body.includes("테마"), "테마 컨트롤 존재");
+assert(!body.includes("브랜드 컬러"), "브랜드 컬러 컨트롤 제거됨");
+assert((await page.locator('input[type="color"]').count()) === 0, "스포이드(컬러 피커) 제거됨");
 
 // 좌우 스왑: 미리보기가 헤드라인 편집보다 왼쪽
 const pvBox = await page.getByText("미리보기").first().boundingBox();
 const hlBox = await page.getByText("헤드라인").first().boundingBox();
 assert(pvBox && hlBox && pvBox.x < hlBox.x, `미리보기가 왼쪽(편집 ${Math.round(hlBox?.x)} > 미리보기 ${Math.round(pvBox?.x)})`);
-
-// 브랜드 컬러 반영: hex 입력 → 카드에 해당 색이 실제로 쓰이는지(글자/배경 모두)
-const countColor = (rgb) => page.evaluate((target) => [...document.querySelectorAll("*")].filter((el) => { const s = getComputedStyle(el); return s.backgroundColor === target || s.color === target; }).length, rgb);
-const TARGET = "rgb(17, 51, 255)"; // #1133ff
-const before = await countColor(TARGET);
-await page.locator("input.font-mono").first().fill("#1133ff");
-await page.waitForTimeout(500);
-const after = await countColor(TARGET);
-assert(before === 0 && after >= 1, `브랜드 컬러 반영(#1133ff): 변경 전 ${before} → 후 ${after}개 요소`);
 
 assert(errors.length === 0, `런타임 콘솔 에러 없음 (${errors.length})`);
 if (errors.length) console.log(errors.join("\n"));

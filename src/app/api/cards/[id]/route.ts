@@ -33,6 +33,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     cta?: string;
     theme?: string;
     brandColor?: string;
+    photoStyle?: "top" | "bg";
+    ratio?: "1:1" | "3:4";
   } | null;
   if (!body) return bad("잘못된 요청입니다.");
 
@@ -71,6 +73,8 @@ export async function PATCH(req: Request, ctx: Ctx) {
     if (typeof body.cta === "string") card.cta = body.cta;
     if (typeof body.theme === "string") card.theme = body.theme;
     if (typeof body.brandColor === "string") card.brandColor = body.brandColor;
+    if (body.photoStyle === "top" || body.photoStyle === "bg") card.photoStyle = body.photoStyle;
+    if (body.ratio === "1:1" || body.ratio === "3:4") card.ratio = body.ratio;
 
     // 사용자 편집 → AI 라벨 해제 (IA: 편집을 거치면 해제)
     if (contentChanged) card.aiEdited = true;

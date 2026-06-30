@@ -134,6 +134,8 @@ export interface CardNews {
   hasVideo?: boolean; // 릴스: 영상 업로드 여부
   theme: string;
   brandColor: string;
+  photoStyle?: "top" | "bg"; // 사진 배치: top=상단 블록(기본) / bg=배경 풀블리드 + DIM
+  ratio?: "1:1" | "3:4"; // 카드 비율: 정사각(기본) / 세로 3:4
   createdAt: number;
   updatedAt: number;
 }

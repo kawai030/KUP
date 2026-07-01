@@ -27,7 +27,7 @@ export async function PUT(req: Request) {
       .map((s) => s.trim())
       .filter(Boolean)
       .slice(0, 5),
-    brandColor: (body.brandColor || "#ef5a35").trim(),
+    brandColor: (body.brandColor || "#0066cc").trim(),
     voiceExample: (body.voiceExample || "").trim(),
     forbiddenExpressions: (Array.isArray(body.forbiddenExpressions) ? body.forbiddenExpressions : [])
       .map((s) => s.trim())

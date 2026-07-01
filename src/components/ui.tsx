@@ -14,18 +14,19 @@ export function Button({
   variant?: "primary" | "ghost" | "outline" | "soft" | "danger";
   size?: "sm" | "md" | "lg";
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  // Apple 버튼 문법: 풀 pill + 프레스 시 scale(0.96)
   const base =
-    "inline-flex items-center justify-center gap-2 font-medium rounded-full transition disabled:opacity-45 disabled:cursor-not-allowed select-none";
+    "inline-flex items-center justify-center gap-2 font-medium rounded-full transition active:scale-[0.96] disabled:opacity-45 disabled:cursor-not-allowed select-none";
   const sizes = {
     sm: "text-sm px-3.5 py-1.5",
     md: "text-sm px-5 py-2.5",
     lg: "text-base px-6 py-3",
   };
   const variants = {
-    primary: "bg-ink text-paper hover:bg-black",
-    danger: "bg-coral text-white hover:brightness-95",
+    primary: "bg-coral text-white hover:brightness-95", // Action Blue pill
+    danger: "bg-[#d70015] text-white hover:brightness-95",
     soft: "bg-coral-soft text-coral hover:brightness-95",
-    outline: "border border-line bg-card text-ink hover:bg-paper-2",
+    outline: "border border-line bg-card text-ink hover:bg-paper-2", // 중립 hairline pill
     ghost: "text-ink-soft hover:text-ink hover:bg-paper-2",
   };
   return (
@@ -92,7 +93,7 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full bg-card border border-line rounded-xl px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:border-ink/40 focus:ring-2 focus:ring-ink/5 transition";
+  "w-full bg-card border border-line rounded-xl px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/15 transition";
 
 export function SectionTitle({
   eyebrow,

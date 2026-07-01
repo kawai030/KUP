@@ -14,12 +14,13 @@ export interface CardTheme {
   chipFg: string;
 }
 
+// 애플 팔레트 카드 테마 — 화이트/파치먼트/니어블랙/블루 (key는 기존 유지 → 기존 카드 호환)
 export const THEMES: CardTheme[] = [
-  { key: "cream", name: "크림", bg: "#f6f3ec", fg: "#1b1a17", sub: "#6f6a5e", accent: "#ef5a35", chip: "#1b1a17", chipFg: "#f6f3ec" },
-  { key: "ink", name: "잉크", bg: "#1b1a17", fg: "#f6f3ec", sub: "#b6b1a4", accent: "#ef8a35", chip: "#ef5a35", chipFg: "#ffffff" },
-  { key: "coral", name: "코랄", bg: "#ef5a35", fg: "#fff7f3", sub: "#ffd9cb", accent: "#1b1a17", chip: "#1b1a17", chipFg: "#fff7f3" },
-  { key: "teal", name: "딥그린", bg: "#1f6f63", fg: "#f2f8f5", sub: "#bcd9d0", accent: "#f3c14b", chip: "#f3c14b", chipFg: "#143f38" },
-  { key: "sand", name: "샌드", bg: "#e9ddc7", fg: "#3a2f1d", sub: "#8a7a5c", accent: "#b23a6b", chip: "#3a2f1d", chipFg: "#e9ddc7" },
+  { key: "cream", name: "화이트", bg: "#ffffff", fg: "#1d1d1f", sub: "#86868b", accent: "#0066cc", chip: "#1d1d1f", chipFg: "#ffffff" },
+  { key: "ink", name: "잉크", bg: "#1d1d1f", fg: "#f5f5f7", sub: "#a1a1a6", accent: "#2997ff", chip: "#2997ff", chipFg: "#ffffff" },
+  { key: "coral", name: "블루", bg: "#0066cc", fg: "#ffffff", sub: "#cfe2fb", accent: "#ffffff", chip: "#ffffff", chipFg: "#0066cc" },
+  { key: "teal", name: "파치먼트", bg: "#f5f5f7", fg: "#1d1d1f", sub: "#6e6e73", accent: "#0066cc", chip: "#1d1d1f", chipFg: "#f5f5f7" },
+  { key: "sand", name: "그래파이트", bg: "#2a2a2c", fg: "#f5f5f7", sub: "#a1a1a6", accent: "#2997ff", chip: "#2997ff", chipFg: "#ffffff" },
 ];
 
 export function getTheme(key: string): CardTheme {

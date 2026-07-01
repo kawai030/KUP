@@ -246,7 +246,7 @@ export default function PlansPage() {
                 </select>
               </Field>
               <Field label={form.format === "릴스" ? "장면 수" : "페이지 수"} hint={`${form.pageCount}${form.format === "릴스" ? "장면" : "장"}`}>
-                <input type="range" min={3} max={form.format === "릴스" ? 6 : 8} value={form.pageCount} onChange={(e) => setForm((f) => ({ ...f, pageCount: Number(e.target.value) }))} className="w-full accent-[#ef5a35]" />
+                <input type="range" min={3} max={form.format === "릴스" ? 6 : 8} value={form.pageCount} onChange={(e) => setForm((f) => ({ ...f, pageCount: Number(e.target.value) }))} className="w-full accent-[#0066cc]" />
               </Field>
             </div>
             <Field label="핵심 메시지" hint="선택">

@@ -24,7 +24,7 @@ const EMPTY: SurveyProfile = {
   mainFormats: ["카드뉴스"],
   assets: "",
   brandKeywords: [],
-  brandColor: "#ef5a35",
+  brandColor: "#0066cc",
   voiceExample: "",
   forbiddenExpressions: [],
   captionLength: "보통",

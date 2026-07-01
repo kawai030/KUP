@@ -199,7 +199,7 @@ function ContributionsGraph({ jobs }: { jobs: PublishJob[] }) {
   today.setHours(0, 0, 0, 0);
   const start = new Date(today);
   start.setDate(start.getDate() - ((today.getDay() + 6) % 7) - (WEEKS - 1) * 7); // 월요일 정렬
-  const levels = ["#eee7d8", "#cfe6dd", "#94cdbd", "#4ba38e", "#1f6f63"];
+  const levels = ["#ececef", "#cfe2fb", "#8ec2f5", "#3f97e8", "#0066cc"]; // Apple blue ramp
   const cell = (n: number) => levels[n >= 4 ? 4 : n];
 
   const cols: { date: Date; n: number }[][] = [];

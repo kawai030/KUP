@@ -9,11 +9,11 @@ import { getTheme } from "@/components/CardCanvas";
 import { KANBAN_COLUMNS, type CardNews, type CardStatus } from "@/lib/types";
 
 const COLUMN_TONE: Record<CardStatus, string> = {
-  기획중: "#8b8579",
-  기획완료: "#d99413",
-  제작중: "#d99413",
+  기획중: "#86868b",
+  기획완료: "#0066cc",
+  제작중: "#0066cc",
   제작완료: "#1f6f63",
-  예약업로드: "#d99413",
+  예약업로드: "#b06b00",
   업로드완료: "#1f6f63",
 };
 
@@ -79,8 +79,8 @@ export default function BoardPage() {
                       return (
                         <button key={c.id} onClick={() => router.push(`/app/create/${c.id}`)} className="w-full text-left">
                           <div className="rounded-xl bg-card border border-line p-3 hover:-translate-y-0.5 transition">
-                            <div className="h-14 rounded-lg mb-2 flex items-end p-2" style={{ background: c.brandColor || t.bg }}>
-                              <span className="text-xs font-medium text-white/90 line-clamp-2 leading-tight" style={{ textShadow: "0 1px 2px rgba(0,0,0,.3)" }}>
+                            <div className="h-14 rounded-lg mb-2 flex items-end p-2" style={{ background: t.bg }}>
+                              <span className="text-xs font-medium line-clamp-2 leading-tight" style={{ color: t.fg }}>
                                 {c.title}
                               </span>
                             </div>

@@ -1,30 +1,34 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f6f3ec;
-  --color-paper-2: #efe9dd;
-  --color-card: #fffdf8;
-  --color-ink: #1b1a17;
-  --color-ink-soft: #4f4b42;
-  --color-muted: #8b8579;
-  --color-line: #e3ddcf;
-  --color-coral: #ef5a35;
-  --color-coral-soft: #fbe4dc;
-  --color-teal: #1f6f63;
+  /* Apple 디자인 언어 — 화이트/파치먼트 표면 + 단일 Action Blue accent (docs/DESIGN-apple.md) */
+  --color-paper: #f5f5f7; /* 파치먼트: 기본 페이지 캔버스 */
+  --color-paper-2: #ececef; /* 보조 표면 */
+  --color-card: #ffffff; /* 화이트 카드 */
+  --color-ink: #1d1d1f; /* 니어블랙 */
+  --color-ink-soft: #424245; /* 본문 소프트 */
+  --color-muted: #86868b; /* Apple 그레이 */
+  --color-line: #d2d2d7; /* hairline */
+  --color-coral: #0066cc; /* Action Blue — 유일한 인터랙티브 accent */
+  --color-coral-soft: #e7f0fb; /* 블루 틴트 */
+  --color-teal: #1f6f63; /* 상태(완료) — 기능색, 브랜드 accent 아님 */
   --color-teal-soft: #dcebe6;
-  --color-amber: #d99413;
+  --color-amber: #b06b00; /* 상태(진행) */
   --color-amber-soft: #f6e8c8;
-  --color-rose: #b23a6b;
+  --color-rose: #b23a6b; /* 상태(릴스) */
 
-  --font-display: "Fraunces", "Iowan Old Style", Georgia, "Times New Roman", serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Apple SD Gothic Neo",
-    "Pretendard", "Malgun Gothic", sans-serif;
+  /* 한국어 = Pretendard(우선). Pretendard는 SF Pro 호환 설계라 라틴도 애플 느낌 유지 */
+  --font-display: "Pretendard", -apple-system, "SF Pro Display", system-ui,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-sans: "Pretendard", -apple-system, "SF Pro Text", system-ui,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 
-  --radius-xl: 1.25rem;
+  --radius-xl: 1.125rem;
 }
 
 * {
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -32,6 +36,12 @@ body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  letter-spacing: -0.01em; /* SF Pro 대체 폰트의 살짝 넓은 자간 보정 */
+}
+
+/* 디스플레이 헤드라인 — "Apple tight" 음수 자간 */
+.font-display {
+  letter-spacing: -0.021em;
 }
 
 :root {

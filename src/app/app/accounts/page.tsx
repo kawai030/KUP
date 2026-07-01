@@ -108,7 +108,7 @@ export default function AccountsPage() {
             <details className="text-xs text-muted">
               <summary className="cursor-pointer text-ink-soft">고급: Facebook 로그인 방식 (페이지 연결 + IG User ID)</summary>
               <label className="flex items-center gap-2 mt-2">
-                <input type="checkbox" checked={fbLogin} onChange={(e) => setFbLogin(e.target.checked)} className="w-4 h-4 accent-[#1f6f63]" />
+                <input type="checkbox" checked={fbLogin} onChange={(e) => setFbLogin(e.target.checked)} className="w-4 h-4 accent-[#0066cc]" />
                 Facebook 로그인 방식 사용 (IG User ID 직접 입력)
               </label>
               {fbLogin && (

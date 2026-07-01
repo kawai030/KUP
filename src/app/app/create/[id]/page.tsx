@@ -509,7 +509,7 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded }: { card: CardNews; di
         {card.reviewFlags.map((f) => (
           <Card key={f.id} className={`p-4 ${f.resolved ? "opacity-60" : ""}`}>
             <div className="flex items-start gap-3">
-              <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-1 w-4 h-4 accent-[#1f6f63]" />
+              <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-1 w-4 h-4 accent-[#0066cc]" />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Badge tone={f.severity === "high" ? "rose" : f.severity === "medium" ? "amber" : "muted"}>{f.type}</Badge>
@@ -894,7 +894,7 @@ function ReelsEditor({
           )}
           <label className="mt-3 block">
             <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadVideo(f); e.target.value = ""; }} />
-            <span className={`inline-flex w-full justify-center items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium cursor-pointer ${uploading ? "bg-paper-2 text-muted" : "bg-ink text-paper hover:bg-black"}`}>
+            <span className={`inline-flex w-full justify-center items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium cursor-pointer active:scale-[0.98] transition ${uploading ? "bg-paper-2 text-muted" : "bg-coral text-white hover:brightness-95"}`}>
               {uploading ? "업로드 중…" : hasVideo ? "영상 교체" : "영상 선택"}
             </span>
           </label>
@@ -911,7 +911,7 @@ function ReelsEditor({
             <div className="space-y-2">
               {card.reviewFlags.map((f) => (
                 <label key={f.id} className={`flex items-start gap-2 text-xs ${f.resolved ? "opacity-60" : ""}`}>
-                  <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-0.5 w-3.5 h-3.5 accent-[#1f6f63]" />
+                  <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-0.5 w-3.5 h-3.5 accent-[#0066cc]" />
                   <span className="text-ink-soft"><b>{f.type}</b> {f.message}</span>
                 </label>
               ))}

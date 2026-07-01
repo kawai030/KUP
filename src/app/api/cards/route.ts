@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     generatedBy: isReels ? (gen as { generatedBy: "ai" | "template" }).generatedBy : "기획",
     hasVideo: isReels ? false : undefined,
     theme: "cream",
-    brandColor: guard.user.survey.brandColor || "#ef5a35",
+    brandColor: guard.user.survey.brandColor || "#0066cc",
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };

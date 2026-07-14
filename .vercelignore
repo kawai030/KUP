@@ -1,0 +1,18 @@
+# Vercel 업로드 제외 목록
+
+# 로컬 의존성 (Vercel이 직접 설치)
+node_modules
+
+# 외장 SSD(APFS) 디렉터리 손상으로 삭제되지 않는 잔존 폴더.
+# 유령 항목이 있어 스캔 시 ENOENT 로 배포가 실패한다 → 반드시 제외.
+node_modules.broken.*
+
+# 로컬 데이터/빌드 산출물
+.next
+.data
+out
+exports
+
+# 로컬 Supabase 산출물
+supabase/.temp
+supabase/.branches

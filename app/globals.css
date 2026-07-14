@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;   /* TDS: 순백 캔버스 */
+  --foreground: #191f28;   /* TDS grey900 — ink */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+/* 토스는 라이트 단일 모드 — OS 다크 설정이 캔버스를 뒤집지 않도록 오버라이드를 두지 않는다. */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* TDS 서체 — Toss Product Sans(비공개) 대체: Pretendard 한 벌(한글·라틴 통일) */
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Segoe UI", sans-serif;
+  letter-spacing: -0.01em; /* 토스 특유의 살짝 좁은 자간 */
+}
+
+/* 홍보 카드 hover — 토스 소프트 엘리베이션 (테두리보다 그림자로 띄운다) */
+.fcard,
+.step,
+.plan {
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.fcard:hover,
+.step:hover,
+.plan:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-line);
+  /* TDS Elevation — 부드럽고 넓게 퍼지는 그림자 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   디자인 시스템 토큰 — 토스 디자인 시스템 TDS (docs/design/DESIGN-toss.md).
+   화이트 캔버스 + grey scale + 단일 Toss Blue(#3182f6) 액센트.
+   ⚠️ 토큰 '이름'은 컴포넌트가 쓰는 그대로 두고 '값'만 교체 →
+      코드 무수정으로 전체 디자인 통일(팀이 설계해둔 교체점).
+   ⚠️ body 배경은 전역으로 덮지 않음 — 배경은 각 루트의 bg-paper 유틸로만.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-paper: #f9fafb;        /* grey50 — 페이지 캔버스(토스는 옅은 그레이 위에 흰 카드) */
+  --color-paper-2: #f2f4f6;      /* grey100 — surface-soft / hover 필 */
+  --color-card: #ffffff;         /* 화이트 카드 표면 */
+  --color-ink: #191f28;          /* grey900 — 헤드라인 */
+  --color-ink-soft: #4e5968;     /* grey700 — 본문 */
+  --color-muted: #8b95a1;        /* grey500 — 서브라벨·비활성 */
+  --color-line: #e5e8eb;         /* grey200 — hairline */
+  /* 단일 브랜드 볼티지 — Toss Blue. 모든 주요 액센트가 이 색 하나로.
+     (토큰명 coral 은 팀 컴포넌트 호환 위해 유지 — 값만 Toss Blue) */
+  --color-coral: #3182f6;        /* Toss Blue 500 — 액센트/브랜드 */
+  --color-coral-soft: #e8f3ff;   /* Blue 50 — soft 배경 */
+  /* 상태 시맨틱 — 브랜드 블루와 분리 */
+  --color-teal: #0aa06e;         /* green — 완료/성공 */
+  --color-teal-soft: #e7f8f1;
+  --color-amber: #c47b00;        /* 진행중 */
+  --color-amber-soft: #fff4e0;
+  --color-rose: #7f56d9;         /* violet — 릴스 */
+  --color-rose-soft: #f3eeff;
+
+  /* Toss Product Sans는 비공개 → Pretendard 한 벌로 대체(한글·라틴 통일). */
+  --font-display: "Pretendard", -apple-system, system-ui, "Apple SD Gothic Neo", sans-serif;
+  --font-sans: "Pretendard", -apple-system, system-ui, "Apple SD Gothic Neo", sans-serif;
+
+  --radius-xl: 0.75rem;          /* TDS 버튼/입력 radius(12px) — 토스 특유의 넉넉한 라운드 */
+}
+
+/* 토스 헤드라인 — 굵고 자간이 좁다 */
+.font-display {
+  letter-spacing: -0.025em;
+}
+
+/* 워크스페이스 유틸/애니메이션 (이식) */
+.preserve-lines {
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.float-in {
+  animation: floatIn 0.4s ease both;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes pulseDot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+@keyframes barGrow {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+.divide-dotted-line {
+  border-top: 1px dashed var(--color-line);
+}

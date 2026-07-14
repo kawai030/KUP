@@ -1,28 +1,58 @@
 {
-  "name": "onekup",
+  "name": "kup",
   "version": "0.1.0",
   "private": true,
-  "description": "1KUP — AI 인스타 컨설팅 도구 (시간은 AI가 줄이고, 발행은 내가 한다)",
+  "description": "Kup — 인스타 카드뉴스 AI 서비스 (프론트+API: Vercel / 워커: Railway)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "worker": "tsx workers/index.ts",
+    "worker:dev": "tsx watch workers/index.ts",
+    "gen": "tsx scripts/generate-deck.ts",
+    "compare": "tsx scripts/compare-card-prompt.ts",
+    "ground": "tsx scripts/grounded-card-prototype.ts",
+    "render-compare": "tsx scripts/render-card-comparison.ts",
+    "render-prompts": "tsx scripts/render-prompt-comparison.ts",
+    "reco-test": "tsx scripts/render-reco-test.ts",
+    "persona-stress": "tsx scripts/render-persona-stress.ts",
+    "verify:strategy": "tsx scripts/verify-live-strategy.ts",
+    "verify:chain": "tsx scripts/verify-live-chain.ts",
+    "verify:review": "tsx scripts/verify-ai-review-wiring.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.1",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "bullmq": "^5.34.0",
     "html-to-image": "^1.11.13",
-    "next": "15.1.6",
-    "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "ioredis": "5.10.1",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
     "@tailwindcss/postcss": "^4.0.0",
-    "@types/node": "^22.10.7",
-    "@types/react": "^19.0.7",
-    "@types/react-dom": "^19.0.3",
-    "playwright-core": "^1.61.1",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.3"
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "comment:overrides": "bullmq가 ioredis 5.10.1을 정확히 핀 → 단일 사본으로 dedupe(타입 충돌 방지)",
+  "overrides": {
+    "ioredis": "5.10.1"
   }
 }

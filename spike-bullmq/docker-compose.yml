@@ -1,0 +1,19 @@
+# 로컬 Redis 한 줄 실행용.
+#   띄우기:  npm run redis:up
+#   끄기:    npm run redis:down       (데이터 보존 — 볼륨 유지)
+#   완전초기화: npm run redis:reset    (데이터까지 삭제)
+#
+# appendonly(AOF)를 켜서 Redis 자체가 재시작돼도 예약 잡이 디스크에 남도록 했다.
+# → "워커 재시작"뿐 아니라 "Redis 재시작"까지 견디는 강한 내구성 증명이 가능.
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: spike-bullmq-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

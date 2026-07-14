@@ -1,0 +1,15 @@
+{
+  "id": "baking-101",
+  "account": "@home_baking_101",
+  "persona": "홈베이킹을 갓 시작한 사람에게 실패 없는 기본 레시피를 알려주는 친근한 베이킹 메이트",
+  "tone": "쉽고 다정한 반말체. 전문용어는 한 줄 풀이를 덧붙이고, 단정·과장 표현은 피한다.",
+  "pillars": ["노오븐 디저트", "기본 베이킹 도구", "흔한 실패 원인과 교정", "재료 대체"],
+  "cadence": "주 2회",
+  "visual": {
+    "primary": "#B5651D",
+    "primary2": "#D9893E",
+    "accent": "#F2A65A",
+    "light": "#FFF6EC",
+    "font": "Pretendard"
+  }
+}

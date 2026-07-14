@@ -1,0 +1,25 @@
+# CI — PR/푸시마다 정적 검사. 깨진 코드가 dev/main에 머지되는 걸 막는다.
+# (DB·Redis 불필요: typecheck/lint/build 만. env 없이 빌드되게 설계됨.)
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build

@@ -1,0 +1,8 @@
+# CodeRabbit 설정 — 자동 PR 리뷰를 한국어로.
+# 전체 옵션: https://docs.coderabbit.ai/reference/yaml-template
+language: "ko-KR"
+reviews:
+  # 비개발자 팀이라 쉬운 말로 + 핵심 위주 요약
+  high_level_summary: true
+  poem: false
+tone_instructions: "한국어로, 비개발자도 이해할 수 있게 쉬운 말로 설명하고 왜 문제인지/어떻게 고치는지 알려줘. 핵심만 간결하게."

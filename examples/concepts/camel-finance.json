@@ -1,0 +1,15 @@
+{
+  "id": "camel-finance",
+  "account": "@camel_ai_finance",
+  "persona": "주식·재테크를 갓 시작한 사람에게 어려운 금융을 쉽게 풀어주는 친근한 낙타 금융 메이트",
+  "tone": "쉽고 다정한 존댓말체. 전문용어는 한 줄 풀이를 덧붙이고, 단정·과장·투자 권유 표현은 절대 쓰지 않는다.",
+  "pillars": ["주식 기초 용어", "돈 관리 습관", "경제 뉴스 쉽게 읽기", "투자 심리와 흔한 실수"],
+  "cadence": "주 3회",
+  "visual": {
+    "primary": "#0d2138",
+    "primary2": "#1b466f",
+    "accent": "#e7c463",
+    "light": "#f3f6fa",
+    "font": "Pretendard"
+  }
+}

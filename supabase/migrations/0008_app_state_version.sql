@@ -1,0 +1,13 @@
+-- 0008_app_state_version — app_state 통짜 blob의 낙관적 동시성 제어(A안 안전망).
+--
+-- 배경: app_state(id=1) 단일 행에 전체 앱 상태를 통짜 JSONB로 저장한다(0005).
+--       mutateDB 가 read-modify-write 라, 동시 요청이 겹치면 나중 write 가 앞 write 를
+--       조용히 덮어써(last-write-wins) 데이터가 유실된다.
+--
+-- 해법: version 컬럼 추가 → mutateDB 가 read 한 version 을 조건으로 CAS update
+--       (WHERE id=1 AND version=<read_version>). 충돌(0행 갱신) 시 최신 상태로 재시도.
+--       유실 대신 재시도로 정합성을 지킨다.
+--
+-- ⚠️ 정식 관계형 이관(B안: cards/sessions/... 행 단위 테이블) 전까지의 안전망.
+--    이관 시 app_state 와 함께 폐기.
+alter table app_state add column if not exists version bigint not null default 0;

@@ -1,0 +1,41 @@
+name: Claude (on-demand)
+
+# 온디맨드 모드 — PR/이슈 코멘트에 @claude 를 멘션하면 동작.
+# 평소 자동 리뷰는 CodeRabbit이 담당하고, Claude는 부를 때만:
+#   - "@claude 이 PR 깊게 리뷰해줘"
+#   - "@claude 이 버그 고쳐서 커밋해줘"  ← 리뷰뿐 아니라 코드 수정/푸시까지 가능
+#
+# 선행조건(이미 완료): Claude GitHub App 설치 + ANTHROPIC_API_KEY 시크릿.
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+jobs:
+  claude:
+    # @claude 가 멘션된 경우에만 실행 (불필요한 호출/비용 방지)
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # @claude 가 수정사항을 커밋/푸시할 수 있게
+      pull-requests: write # PR 코멘트 작성
+      issues: write
+      id-token: write # claude-code-action 의 OIDC 토큰 교환에 필수 (이게 빠져서 #14에서 실패)
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

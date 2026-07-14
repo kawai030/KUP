@@ -1,0 +1,38 @@
+# Supabase 로컬 CLI 설정. 원격 프로젝트 연결: `supabase link --project-ref <ref>`
+# 마이그레이션 적용(Task 6): `supabase db push` (또는 로컬: `supabase start` + `supabase db reset`)
+project_id = "kup"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# 서비스 로그인은 Supabase Auth(인스타 OAuth와 별개, 개발계획 §7)
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000", "http://localhost:3000/**"]
+jwt_expiry = 3600
+enable_signup = true
+
+# 서비스 로그인 — 구글 OAuth(메인). 값은 .env.local 환경변수로 주입(커밋 금지).
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[storage]
+enabled = true
+# 렌더 카드 PNG 공개 버킷(Phase 3)
+file_size_limit = "50MiB"

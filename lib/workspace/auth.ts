@@ -10,30 +10,9 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30일
  * 데모 연동 계정 시드 — **게스트(둘러보기) 전용**. 워크스페이스를 데이터와 함께 미리 보여주기 위함.
  * ⚠️ 실유저(구글/이메일)에게는 절대 심지 않는다 — 각자 자기 인스타를 OAuth 로 실제 연동해야 하므로.
  */
-function demoIgAccounts(now: number): User["igAccounts"] {
-  return [
-    {
-      id: "ig_demo_my_cafe_daily",
-      handle: "my_cafe_daily",
-      mode: "테스터베타",
-      connectedAt: now,
-      followers: 248,
-      weeklyPublished: 5,
-      weeklyGrowth: 31,
-      niche: "홈카페 · 데일리 감성",
-    },
-    {
-      id: "ig_demo_cafe_dessert",
-      handle: "cafe_dessert",
-      mode: "테스터베타",
-      connectedAt: now,
-      followers: 96,
-      weeklyPublished: 2,
-      weeklyGrowth: 8,
-      niche: "디저트 · 신메뉴 위주",
-    },
-  ];
-}
+// (제거됨) 게스트에게 데모 인스타 계정을 심던 시드.
+// 실제로 연동하지도 않은 계정이 "이미 등록됨"으로 보여 혼란스러워서 없앴다.
+// 게스트도 실유저와 동일하게 '연동 계정 0개'인 빈 상태로 시작한다.
 
 export function newUser(partial: Partial<User> & { email: string; name: string }): User {
   const now = Date.now();
@@ -48,9 +27,9 @@ export function newUser(partial: Partial<User> & { email: string; name: string }
     marketingConsent: partial.marketingConsent ?? false,
     plan: "베이직",
     billingCycle: "월",
-    // 게스트만 데모 계정으로 워크스페이스를 채워 보여준다. 실유저는 빈 상태 → 자기 인스타를 직접 연동.
-    igAccounts: partial.guest ? demoIgAccounts(now) : [],
-    activeIgAccountId: partial.guest ? "ig_demo_my_cafe_daily" : undefined,
+    // 게스트·실유저 모두 빈 상태로 시작 — 자기 인스타를 직접 연동한다.
+    igAccounts: [],
+    activeIgAccountId: undefined,
     onboarded: false,
     createdAt: now,
   };

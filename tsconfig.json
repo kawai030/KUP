@@ -26,5 +26,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "poc", "supabase"]
+  "exclude": ["node_modules", "node_modules.broken.*", "poc", "supabase"]
 }

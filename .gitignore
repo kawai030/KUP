@@ -45,3 +45,6 @@ poc/cloudflared
 
 # 로컬 런타임 DB / 워크스페이스 파일DB — 로컬 전용, 커밋 금지
 .data/
+
+# 외장 SSD APFS 손상으로 삭제 불가한 잔존 폴더 (디스크 복구 후 제거)
+node_modules.broken.*/

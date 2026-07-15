@@ -120,26 +120,28 @@ export default function AccountsPage() {
             <Button onClick={connect} disabled={busy}>{busy ? "연동 중…" : "연동"}</Button>
           </div>
         ) : (
-          <div className="space-y-4 max-w-md">
-            {/* 방법 1 — 액세스 토큰 붙여넣기(가장 빠름, 앱 설정 불필요) */}
+          <div className="space-y-3 max-w-md">
+            {/* 메인 — 실사용자 경로. 사용자가 자기 인스타로 로그인해 '허용'만 누르면 연동. */}
             <div className="rounded-xl border border-line p-4">
-              <div className="font-medium text-sm">액세스 토큰으로 연동</div>
-              <p className="text-xs text-muted mt-1">
-                Meta 앱 대시보드 → <b>Instagram → API 설정 → 2. 액세스 토큰 생성</b>에서 &lsquo;토큰 생성&rsquo;으로 받은 토큰을 붙여넣으세요. 계정명·ID는 토큰으로 자동 확인돼요.
-              </p>
-              <Field label="액세스 토큰" hint="IGAA… 로 시작하는 긴 문자열">
-                <input className={inputClass} value={token} onChange={(e) => setToken(e.target.value)} placeholder="IGAA..." autoComplete="off" spellCheck={false} />
-              </Field>
-              <Button className="mt-2" onClick={connectWithToken} disabled={busy}>{busy ? "연동 중…" : "이 토큰으로 연동"}</Button>
-            </div>
-            {/* 방법 2 — OAuth(앱 자격증명·리디렉션 URI 설정 완료 시) */}
-            <div className="rounded-xl border border-line p-4">
-              <div className="font-medium text-sm">인스타로 로그인 (OAuth)</div>
-              <p className="text-xs text-muted mt-1">앱에 IG_APP_ID/SECRET·리디렉션 URI 설정을 마쳤다면, 토큰 없이 인스타 &lsquo;허용&rsquo;만으로 연동돼요.</p>
-              <Button variant="ghost" className="mt-2" onClick={() => { window.location.href = "/api/ig/oauth/start"; }}>
+              <div className="font-medium text-sm">인스타로 로그인</div>
+              <p className="text-xs text-muted mt-1">인스타 인증 화면에서 &lsquo;허용&rsquo;만 누르면 연동돼요. 토큰을 직접 다룰 필요가 없어요.</p>
+              <Button className="mt-3" onClick={() => { window.location.href = "/api/ig/oauth/start"; }}>
                 인스타로 로그인
               </Button>
             </div>
+            {/* 고급 — 개발자/테스터가 Meta 대시보드에서 생성한 토큰을 직접 붙여넣는 경로(접힘). */}
+            <details className="rounded-xl border border-line px-4 py-3">
+              <summary className="text-sm text-ink-soft cursor-pointer select-none">개발자 · 액세스 토큰 직접 입력</summary>
+              <div className="mt-3">
+                <p className="text-xs text-muted">
+                  Meta 앱 대시보드에서 생성한 <b>테스터 토큰</b>이 있을 때만 사용하세요. 일반 사용자는 위 &lsquo;인스타로 로그인&rsquo;을 씁니다.
+                </p>
+                <Field label="액세스 토큰" hint="IGAA… 로 시작하는 긴 문자열">
+                  <input className={inputClass} value={token} onChange={(e) => setToken(e.target.value)} placeholder="IGAA..." autoComplete="off" spellCheck={false} />
+                </Field>
+                <Button variant="ghost" className="mt-2" onClick={connectWithToken} disabled={busy}>{busy ? "연동 중…" : "이 토큰으로 연동"}</Button>
+              </div>
+            </details>
           </div>
         )}
         {err && <p className="text-sm text-coral mt-2">{err}</p>}

@@ -10,6 +10,7 @@ export default function AccountsPage() {
   const [publicBase, setPublicBase] = useState<string | null>(null);
   const [mode, setMode] = useState<"테스터" | "정식">("테스터");
   const [handle, setHandle] = useState("");
+  const [token, setToken] = useState(""); // 정식 연동 — Meta 대시보드에서 '토큰 생성'으로 받은 액세스 토큰
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [notice, setNotice] = useState<{ tone: "ok" | "err"; msg: string } | null>(null);
@@ -45,6 +46,26 @@ export default function AccountsPage() {
       });
       setUser(user);
       setHandle("");
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  // 정식 연동(토큰 직접) — Meta 대시보드 '액세스 토큰 생성'으로 받은 토큰을 붙여넣어 실제 계정 연결.
+  // OAuth 리디렉션·앱 자격증명 없이도 되는 가장 빠른 경로(Instagram 로그인 방식).
+  async function connectWithToken() {
+    setErr("");
+    if (!token.trim()) return setErr("액세스 토큰을 붙여넣으세요.");
+    setBusy(true);
+    try {
+      const { user } = await api<{ user: PublicUser }>("/api/ig", {
+        method: "POST",
+        body: { accessToken: token.trim() },
+      });
+      setUser(user);
+      setToken("");
+      setNotice({ tone: "ok", msg: "인스타 계정을 연결했어요." });
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -99,12 +120,26 @@ export default function AccountsPage() {
             <Button onClick={connect} disabled={busy}>{busy ? "연동 중…" : "연동"}</Button>
           </div>
         ) : (
-          <div className="rounded-xl border border-line p-4 max-w-md">
-            <div className="font-medium text-sm">인스타로 로그인</div>
-            <p className="text-xs text-muted mt-1">버튼을 누르면 인스타 인증 화면으로 이동해요. 토큰을 직접 입력할 필요 없이, 인스타에서 ‘허용’만 누르면 연동됩니다.</p>
-            <Button className="mt-3" onClick={() => { window.location.href = "/api/ig/oauth/start"; }}>
-              인스타로 로그인
-            </Button>
+          <div className="space-y-4 max-w-md">
+            {/* 방법 1 — 액세스 토큰 붙여넣기(가장 빠름, 앱 설정 불필요) */}
+            <div className="rounded-xl border border-line p-4">
+              <div className="font-medium text-sm">액세스 토큰으로 연동</div>
+              <p className="text-xs text-muted mt-1">
+                Meta 앱 대시보드 → <b>Instagram → API 설정 → 2. 액세스 토큰 생성</b>에서 &lsquo;토큰 생성&rsquo;으로 받은 토큰을 붙여넣으세요. 계정명·ID는 토큰으로 자동 확인돼요.
+              </p>
+              <Field label="액세스 토큰" hint="IGAA… 로 시작하는 긴 문자열">
+                <input className={inputClass} value={token} onChange={(e) => setToken(e.target.value)} placeholder="IGAA..." autoComplete="off" spellCheck={false} />
+              </Field>
+              <Button className="mt-2" onClick={connectWithToken} disabled={busy}>{busy ? "연동 중…" : "이 토큰으로 연동"}</Button>
+            </div>
+            {/* 방법 2 — OAuth(앱 자격증명·리디렉션 URI 설정 완료 시) */}
+            <div className="rounded-xl border border-line p-4">
+              <div className="font-medium text-sm">인스타로 로그인 (OAuth)</div>
+              <p className="text-xs text-muted mt-1">앱에 IG_APP_ID/SECRET·리디렉션 URI 설정을 마쳤다면, 토큰 없이 인스타 &lsquo;허용&rsquo;만으로 연동돼요.</p>
+              <Button variant="ghost" className="mt-2" onClick={() => { window.location.href = "/api/ig/oauth/start"; }}>
+                인스타로 로그인
+              </Button>
+            </div>
           </div>
         )}
         {err && <p className="text-sm text-coral mt-2">{err}</p>}

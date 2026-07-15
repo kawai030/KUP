@@ -1,0 +1,22 @@
+# 예약 발행 트리거 — 5분마다 /api/cron/publish 를 호출해 만기된 예약 잡을 발행한다.
+# Vercel Hobby 는 크론이 하루 1회 제한이라, 무료인 GitHub Actions 스케줄로 대체한다.
+# (Pro 로 올리면 vercel.json 에 { "crons": [{ "path": "/api/cron/publish", "schedule": "*/5 * * * *" }] } 로 바꿔도 됨)
+#
+# 보안: 리포 Settings → Secrets → Actions 에 CRON_SECRET 을 추가하고, Vercel 환경변수에도 같은 값을 넣으면
+#       엔드포인트가 그 Bearer 로만 열린다. (둘 다 비워두면 엔드포인트가 열린 채로 동작)
+name: scheduled-publish
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # 매 5분 (GitHub Actions 최소 주기)
+  workflow_dispatch: {} # 수동 실행 버튼
+
+jobs:
+  fire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 예약 발행 실행기 호출
+        run: |
+          curl -fsS -X GET "https://kup-zeta.vercel.app/api/cron/publish" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 60 || echo "cron call failed (다음 주기에 재시도)"

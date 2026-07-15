@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { api, formatDate } from "@/lib/workspace/client";
 import { Badge, Button, Card, EmptyState, Field, inputClass, SectionTitle } from "@/components/workspace/ui";
 import type { PublicUser } from "@/lib/workspace/types";
 
 export default function AccountsPage() {
+  const router = useRouter();
   const [user, setUser] = useState<PublicUser | null>(null);
   const [publicBase, setPublicBase] = useState<string | null>(null);
   const [mode, setMode] = useState<"테스터" | "정식">("테스터");
@@ -46,6 +48,7 @@ export default function AccountsPage() {
       });
       setUser(user);
       setHandle("");
+      router.refresh(); // 서버 레이아웃 재조회 → 좌측 사이드바 계정 스위처 즉시 갱신
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -66,6 +69,7 @@ export default function AccountsPage() {
       setUser(user);
       setToken("");
       setNotice({ tone: "ok", msg: "인스타 계정을 연결했어요." });
+      router.refresh(); // 사이드바 계정 스위처 즉시 갱신
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -75,10 +79,12 @@ export default function AccountsPage() {
   async function setActive(id: string) {
     const { user } = await api<{ user: PublicUser }>("/api/ig", { method: "PATCH", body: { activeId: id } });
     setUser(user);
+    router.refresh(); // 활성 계정 변경 → 사이드바 반영
   }
   async function remove(id: string) {
     const { user } = await api<{ user: PublicUser }>("/api/ig", { method: "DELETE", body: { id } });
     setUser(user);
+    router.refresh(); // 해제 → 사이드바 반영
   }
 
   if (!user) return <div className="py-20 text-center text-muted">불러오는 중…</div>;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Icon } from "@/components/ui/icon";
+import { Icon, type IconName } from "@/components/ui/icon";
 
 // 공용 UI 프리미티브 (프레젠테이션 전용 — 클라/서버 양쪽에서 사용 가능)
 
@@ -15,18 +15,20 @@ export function Button({
   variant?: "primary" | "ghost" | "outline" | "soft" | "danger";
   size?: "sm" | "md" | "lg";
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  // 프레스 피드백(active:scale) + 부드러운 전환 = 촉각적인 '살아있는' 느낌
   const base =
-    "inline-flex items-center justify-center gap-2 font-medium rounded-full transition disabled:opacity-45 disabled:cursor-not-allowed select-none";
+    "inline-flex items-center justify-center gap-2 font-medium rounded-full transition duration-150 active:scale-[0.97] disabled:opacity-45 disabled:cursor-not-allowed disabled:active:scale-100 select-none";
   const sizes = {
     sm: "text-sm px-3.5 py-1.5",
     md: "text-sm px-5 py-2.5",
     lg: "text-base px-6 py-3",
   };
   const variants = {
-    primary: "bg-coral text-white hover:brightness-95",
-    danger: "bg-coral text-white hover:brightness-95",
+    // 핑크 버튼엔 은은한 브랜드 그림자로 깊이 — 눌러야 할 것이 떠 보인다
+    primary: "bg-coral text-white shadow-[0_2px_10px_rgba(229,35,100,0.28)] hover:brightness-95 hover:shadow-[0_4px_16px_rgba(229,35,100,0.32)]",
+    danger: "bg-coral text-white shadow-[0_2px_10px_rgba(229,35,100,0.28)] hover:brightness-95",
     soft: "bg-coral-soft text-coral hover:brightness-95",
-    outline: "border border-line bg-card text-ink hover:bg-paper-2",
+    outline: "border border-line bg-card text-ink hover:bg-paper-2 hover:border-ink/20",
     ghost: "text-ink-soft hover:text-ink hover:bg-paper-2",
   };
   return (
@@ -39,12 +41,19 @@ export function Button({
 export function Card({
   children,
   className = "",
+  interactive = false,
 }: {
   children: ReactNode;
   className?: string;
+  interactive?: boolean; // 클릭 가능한 카드 → hover 시 살짝 떠오름
 }) {
+  // TDS DNA: 테두리보다 '소프트 섀도우'로 종이 위에 띄운다. 흰 카드/연회색 배경이라 살짝 또렷하게.
+  const elevation = "shadow-[0_1px_2px_rgba(17,24,39,0.05),0_5px_16px_-6px_rgba(17,24,39,0.08)]";
+  const hover = interactive
+    ? "transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-8px_rgba(17,24,39,0.14)] cursor-pointer"
+    : "";
   return (
-    <div className={`bg-card border border-line rounded-2xl ${className}`}>{children}</div>
+    <div className={`bg-card border border-line rounded-2xl ${elevation} ${hover} ${className}`}>{children}</div>
   );
 }
 
@@ -111,8 +120,9 @@ export function Field({
   );
 }
 
+// 포커스는 브랜드 핑크로 은은하게 — 지금 어디를 입력 중인지 명확하고 프리미엄하게.
 export const inputClass =
-  "w-full bg-card border border-line rounded-xl px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:border-ink/40 focus:ring-2 focus:ring-ink/5 transition";
+  "w-full bg-card border border-line rounded-xl px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:border-coral/55 focus:ring-2 focus:ring-coral/12 transition";
 
 export function SectionTitle({
   eyebrow,
@@ -157,20 +167,23 @@ export function EmptyState({
   title,
   desc,
   action,
+  icon = "sparkle", // 화면 맥락에 맞는 아이콘 선택 가능(콘텐츠=layers, 성과=chart …)
   nowrapDesc = false, // 설명을 줄바꿈 없이 한 줄로(넓은 카드용)
 }: {
   title: string;
   desc?: string;
   action?: ReactNode;
+  icon?: IconName;
   nowrapDesc?: boolean;
 }) {
   return (
     <div className="text-center py-14 px-6">
-      <div className="mx-auto w-12 h-12 rounded-2xl bg-paper-2 grid place-items-center mb-3 text-muted">
-        <Icon name="sparkle" size={22} />
+      {/* 아이콘 뱃지 — 은은한 핑크 틴트 + 링으로 따뜻하게(회색 박스보다 브랜디드) */}
+      <div className="mx-auto w-14 h-14 rounded-2xl bg-coral-soft ring-1 ring-coral/10 grid place-items-center mb-3.5 text-coral">
+        <Icon name={icon} size={24} />
       </div>
       <h3 className="font-display text-lg text-ink">{title}</h3>
-      {desc && <p className={`text-sm text-ink-soft mt-1 ${nowrapDesc ? "whitespace-nowrap" : "max-w-sm mx-auto"}`}>{desc}</p>}
+      {desc && <p className={`text-sm text-ink-soft mt-1.5 ${nowrapDesc ? "whitespace-nowrap" : "max-w-sm mx-auto leading-relaxed"}`}>{desc}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );

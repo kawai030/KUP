@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api, formatDay } from "@/lib/workspace/client";
-import { Badge, Button, Card } from "@/components/workspace/ui";
+import { Badge, Button, Card, EmptyState } from "@/components/workspace/ui";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { SurveyModal } from "@/components/workspace/SurveyModal";
 import { findIgAccount, DM_LIMITS, type CardNews, type CardStatus, type DmRule, type MetricEntry, type PublicUser, type PublishJob, type SurveyProfile } from "@/lib/workspace/types";
@@ -170,11 +170,20 @@ export default function HomePage() {
           <div className="text-sm font-medium mb-3">빠른 시작</div>
           <div className="space-y-2">
             {quickActions.map((a) => (
-              <Link key={a.href} href={a.href} className="flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 hover:bg-paper-2 transition">
-                <span className="w-7 h-7 grid place-items-center rounded-lg bg-coral-soft text-coral">
+              <Link
+                key={a.href}
+                href={a.href}
+                className="group flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 transition hover:border-coral/25 hover:bg-coral-soft/30"
+              >
+                <span className="w-7 h-7 grid place-items-center rounded-lg bg-coral-soft text-coral transition group-hover:scale-105">
                   <Icon name={a.icon} size={16} />
                 </span>
-                <span className="text-sm font-medium">{a.label}</span>
+                <span className="text-sm font-medium flex-1">{a.label}</span>
+                <Icon
+                  name="arrowRight"
+                  size={16}
+                  className="text-coral opacity-0 -translate-x-1 transition group-hover:opacity-100 group-hover:translate-x-0"
+                />
               </Link>
             ))}
           </div>
@@ -218,7 +227,12 @@ export default function HomePage() {
             </Link>
           </div>
           {recentCards.length === 0 ? (
-            <p className="text-sm text-ink-soft py-4">아직 만든 콘텐츠가 없어요.</p>
+            <div className="flex items-center gap-2.5 py-4 text-sm text-muted">
+              <span className="w-8 h-8 rounded-lg bg-coral-soft grid place-items-center text-coral shrink-0">
+                <Icon name="layers" size={15} />
+              </span>
+              아직 만든 콘텐츠가 없어요.
+            </div>
           ) : (
             <div className="space-y-1.5">
               {recentCards.map((c) => {
@@ -240,12 +254,18 @@ export default function HomePage() {
       </div>
 
       {cards.length === 0 && (
-        <Card className="p-6 text-center">
-          <p className="text-ink-soft">아직 만든 콘텐츠가 없어요. 첫 기획부터 시작해 볼까요?</p>
-          <Link href="/app/plans" className="inline-flex items-center gap-1 mt-3 text-coral font-medium">
-            AI 콘텐츠 생성으로
-            <Icon name="arrowRight" size={16} />
-          </Link>
+        <Card>
+          <EmptyState
+            icon="sparkle"
+            title="아직 만든 콘텐츠가 없어요"
+            desc="첫 기획부터 시작하면, 이번 주 발행까지 KUP가 함께 이어 드려요."
+            action={
+              <Link href="/app/plans" className="inline-flex items-center gap-1.5 text-coral font-semibold text-sm group">
+                AI 콘텐츠 생성으로
+                <Icon name="arrowRight" size={16} className="transition group-hover:translate-x-0.5" />
+              </Link>
+            }
+          />
         </Card>
       )}
     </div>

@@ -136,16 +136,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* stats */}
+      {/* 무엇을 대신 하는가 — 지어낸 성과 수치 대신 실제 기능(정직) */}
       <section className="section" id="stats">
-        <span className="kicker">숫자로 보는 KUP</span>
-        <h2 className="h2">꾸준함이 만드는 변화</h2>
+        <span className="kicker">KUP가 맡는 것</span>
+        <h2 className="h2">혼자서도, 꾸준하게</h2>
         <div className="stats">
-          <div className="stat"><div className="stat-big">+12%</div><div className="stat-cap">평균 주간 팔로워 증가</div></div>
-          <div className="stat"><div className="stat-big">70%</div><div className="stat-cap">콘텐츠 제작 시간 단축</div></div>
-          <div className="stat"><div className="stat-big">12,000+</div><div className="stat-cap">누적 발행 콘텐츠</div></div>
+          <div className="stat"><div className="stat-big">말투 학습</div><div className="stat-cap">내 문체를 배워 카드뉴스 초안을 써 드려요</div></div>
+          <div className="stat"><div className="stat-big">예약 발행</div><div className="stat-cap">정한 시간에 인스타로 자동으로 올려요</div></div>
+          <div className="stat"><div className="stat-big">성과 정리</div><div className="stat-cap">저장·공유 흐름을 한 곳에서 보여줘요</div></div>
         </div>
-        <p className="stats-note">* 베타 참여자 기준 예시 수치 (실제 데이터로 교체 예정)</p>
+        <p className="stats-note">지어낸 성과 수치는 싣지 않아요. 실제 지표는 인스타 연동 후 내 계정 데이터로만 보여드립니다.</p>
       </section>
 
       {/* pricing */}

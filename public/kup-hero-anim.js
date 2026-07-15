@@ -191,7 +191,7 @@
     const total=heroEl.offsetHeight-window.innerHeight;
     progress = Math.max(0, Math.min(1, (-rect.top)/total));
     // overlay text choreography
-    heroBlock.style.opacity = 1 - smoothstep(0.42,0.66,progress);
+    heroBlock.style.opacity = 1 - smoothstep(0.34,0.56,progress);
     heroBlock.style.transform = `translateY(${-progress*40}px)`;
     endline.style.opacity = smoothstep(0.6,0.9,progress);
     hint.style.opacity = 1 - smoothstep(0.02,0.12,progress);

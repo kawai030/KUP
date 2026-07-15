@@ -255,7 +255,7 @@ export default function EditorPage() {
     <div>
       <div className="flex items-start justify-between gap-3 flex-wrap mb-5">
         <div className="flex-1 min-w-0">
-          <button onClick={() => router.push("/app/board")} className="text-sm text-muted hover:text-ink">
+          <button onClick={() => router.push("/app/board")} className="text-sm text-muted hover:text-ink transition">
             ← 콘텐츠 관리
           </button>
           {editingTitle ? (
@@ -357,7 +357,7 @@ export default function EditorPage() {
               <Field label="테마">
                 <div className="flex flex-wrap gap-2">
                   {THEMES.map((tm) => (
-                    <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm ${draft.theme === tm.key ? "border-coral" : "border-line"}`}>
+                    <button key={tm.key} onClick={() => patchDraft({ theme: tm.key })} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm transition ${draft.theme === tm.key ? "border-coral" : "border-line hover:border-ink/30"}`}>
                       <span className="w-4 h-4 rounded-full border border-line" style={{ background: getTheme(tm.key).bg }} />
                       {tm.name}
                     </button>
@@ -376,7 +376,7 @@ export default function EditorPage() {
                   <div className="text-xs text-muted mb-2">페이지 ({draft.pages.length}장) · 편집/미리보기 함께 이동</div>
                   <div className="flex gap-1.5 flex-wrap">
                     {draft.pages.map((_, i) => (
-                      <button key={i} onClick={() => setActivePage(i)} className={`w-10 h-10 rounded-lg text-sm font-medium ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft"}`}>
+                      <button key={i} onClick={() => setActivePage(i)} className={`w-10 h-10 rounded-lg text-sm font-medium transition ${activePage === i ? "bg-ink text-paper" : "bg-paper-2 text-ink-soft hover:text-ink"}`}>
                         {i + 1}
                       </button>
                     ))}
@@ -393,7 +393,7 @@ export default function EditorPage() {
                         ["1:1", "정사각", "1:1"],
                         ["3:4", "세로형", "3:4"],
                       ] as const).map(([val, label, sub]) => (
-                        <button key={val} type="button" onClick={() => patchDraft({ ratio: val })} className={`px-3 py-1.5 rounded-full border text-sm ${draft.ratio === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}>
+                        <button key={val} type="button" onClick={() => patchDraft({ ratio: val })} className={`px-3 py-1.5 rounded-full border text-sm transition ${draft.ratio === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}>
                           {label} <span className="text-muted">{sub}</span>
                         </button>
                       ))}

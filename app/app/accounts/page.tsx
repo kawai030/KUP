@@ -164,14 +164,14 @@ export default function AccountsPage() {
 
       {user.igAccounts.length === 0 ? (
         <Card>
-          <EmptyState title="연동된 계정이 없어요" desc="위에서 계정을 추가하세요." />
+          <EmptyState icon="instagram" title="연동된 계정이 없어요" desc="위에서 계정을 추가하세요." />
         </Card>
       ) : (
         <div className="space-y-2">
           {user.igAccounts.map((a) => {
             const active = a.id === (user.activeIgAccountId ?? user.igAccounts[0]?.id);
             return (
-              <Card key={a.id} className="p-4 flex items-center justify-between gap-3">
+              <Card key={a.id} className="group p-4 flex items-center justify-between gap-3 transition hover:border-coral/25 hover:bg-coral-soft/30">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-10 h-10 rounded-full bg-ink text-paper grid place-items-center font-medium">{a.handle[0]?.toUpperCase()}</span>
                   <div className="min-w-0">

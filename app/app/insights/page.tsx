@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/workspace/client";
-import { Badge, Button, Card, SectionTitle } from "@/components/workspace/ui";
+import { Badge, Button, Card, EmptyState, SectionTitle } from "@/components/workspace/ui";
 import { Icon } from "@/components/ui/icon";
 import { type CardNews, type DmRule, type MetricEntry, type PublicUser, type PublishJob } from "@/lib/workspace/types";
 import { followerChallenge, resolveFollowerCount } from "@/lib/workspace/followers";
@@ -145,9 +145,11 @@ export default function InsightsPage() {
           <InfoTip text="각 게시물의 발행 이후 누적 지표예요. 여러 번 수집돼도 가장 최근 스냅샷(누적값)을 기준으로 보여줍니다." />
         </div>
         {postRows.length === 0 ? (
-          <div className="rounded-xl border border-line bg-paper-2/30 px-4 py-8 text-center text-sm text-ink-soft">
-            아직 수집된 게시물 지표가 없어요.{activeAccount?.mode === "정식" ? " 상단 ‘인스타에서 가져오기’로 지표를 불러오세요." : ""}
-          </div>
+          <EmptyState
+            icon="chart"
+            title="아직 수집된 게시물 지표가 없어요"
+            desc={activeAccount?.mode === "정식" ? "상단 ‘인스타에서 가져오기’로 지표를 불러오세요." : undefined}
+          />
         ) : (
           <div className="rounded-xl border border-line overflow-hidden">
             <div className="overflow-x-auto">
@@ -247,13 +249,25 @@ export default function InsightsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-ink-soft">아직 수집된 성과가 없어요. 상단 ‘인스타에서 가져오기’로 지표를 불러오면 ‘다음에 바꿀 점’을 추천해 드려요.</p>
+          <EmptyState
+            icon="chart"
+            title="아직 수집된 성과가 없어요"
+            desc="상단 ‘인스타에서 가져오기’로 지표를 불러오면 ‘다음에 바꿀 점’을 추천해 드려요."
+          />
         )}
       </Card>
 
       {cards.length === 0 && (
-        <Card className="p-5 text-center text-sm text-ink-soft">
-          아직 만든 콘텐츠가 없어요. <Link href="/app/plans" className="text-coral">AI 콘텐츠 생성</Link>에서 시작하세요.
+        <Card>
+          <EmptyState
+            icon="chart"
+            title="아직 만든 콘텐츠가 없어요"
+            action={
+              <p className="text-sm text-ink-soft">
+                <Link href="/app/plans" className="text-coral font-medium hover:underline">AI 콘텐츠 생성</Link>에서 시작하세요.
+              </p>
+            }
+          />
         </Card>
       )}
     </div>

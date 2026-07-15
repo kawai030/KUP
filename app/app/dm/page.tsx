@@ -92,6 +92,7 @@ export default function DmPage() {
       {rules.length === 0 && !creating ? (
         <Card>
           <EmptyState
+            icon="message"
             title="아직 DM 규칙이 없어요"
             desc="‘규칙 추가’로 게시물·댓글 키워드와 보낼 정보 DM을 설정해 보세요."
             action={<Button onClick={() => setCreating(true)}>규칙 만들기</Button>}
@@ -127,7 +128,7 @@ function RuleCard({
   );
   const title = (rule.dmMessage.split("\n")[0] || "DM 자동 발송").trim();
   return (
-    <Card className={`group p-4 flex items-center gap-3 ${rule.enabled ? "" : "opacity-60"}`}>
+    <Card className={`group p-4 flex items-center gap-3 transition hover:bg-paper-2/40 ${rule.enabled ? "" : "opacity-60"}`}>
       {/* 키워드 칩 */}
       <span className="inline-flex items-center rounded-md bg-paper-2 px-2.5 py-1 text-sm font-medium text-ink shrink-0">{rule.triggerKeyword}</span>
 

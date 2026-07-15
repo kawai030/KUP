@@ -164,6 +164,7 @@ export default function PlansPage() {
       {plans.length === 0 ? (
         <Card>
           <EmptyState
+            icon="sparkle"
             title="기획이 비어 있어요"
             desc="추천 주제를 누르거나 ‘기획 추가’로 내 주제를 넣어 첫 기획을 만들어 보세요."
             action={<Button onClick={() => openAdd()}>기획 추가</Button>}
@@ -186,7 +187,7 @@ export default function PlansPage() {
               </thead>
               <tbody>
                 {plans.map((c, i) => (
-                  <tr key={c.id} className="border-b border-line/60 align-top">
+                  <tr key={c.id} className="border-b border-line/60 align-top transition hover:bg-paper-2/40">
                     <td className="py-3 px-4 text-muted">{i + 1}</td>
                     <td className="py-3 px-3">
                       <Badge tone={c.format === "릴스" ? "rose" : "muted"}>

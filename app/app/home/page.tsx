@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api, formatDay } from "@/lib/workspace/client";
 import { Badge, Button, Card, EmptyState } from "@/components/workspace/ui";
 import { Icon, type IconName } from "@/components/ui/icon";
+import { CardCanvas } from "@/components/workspace/CardCanvas";
 import { SurveyModal } from "@/components/workspace/SurveyModal";
 import { findIgAccount, DM_LIMITS, type CardNews, type CardStatus, type DmRule, type MetricEntry, type PublicUser, type PublishJob, type SurveyProfile } from "@/lib/workspace/types";
 import { resolveFollowerCount } from "@/lib/workspace/followers";
@@ -239,7 +240,7 @@ export default function HomePage() {
                 const pill = statusPill(c.status);
                 return (
                   <Link key={c.id} href="/app/board" className="flex items-center gap-3 rounded-xl px-2 py-2 -mx-2 hover:bg-paper-2/60 transition">
-                    <span className="w-10 h-10 rounded-lg bg-paper-2 shrink-0" style={{ background: c.brandColor || undefined }} />
+                    <CardThumb card={c} />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium truncate">{c.title}</div>
                       <div className="text-xs text-muted truncate">{statusSub(c.status)}</div>
@@ -323,6 +324,23 @@ function ConceptItem({ label, value }: { label: string; value: string }) {
 }
 
 // 통계 카드 한 칸
+// 최근 콘텐츠 썸네일 — 색상 블록 대신 카드의 '첫 장'을 실제로 렌더해 미니 미리보기로.
+// CardCanvas(1080px)를 44px 박스로 축소해 상단을 크롭. 사진은 홈에서 안 불러오므로 테마·문구·레이아웃이 보인다.
+function CardThumb({ card }: { card: CardNews }) {
+  const page = card.pages?.[0];
+  if (!page) {
+    return <span className="w-11 h-11 rounded-lg bg-paper-2 border border-line shrink-0" style={{ background: card.brandColor || undefined }} />;
+  }
+  const BOX = 44;
+  return (
+    <div className="rounded-lg overflow-hidden border border-line shrink-0 shadow-[0_1px_2px_rgba(17,24,39,0.06)]" style={{ width: BOX, height: BOX }} aria-hidden>
+      <div style={{ width: 1080, transform: `scale(${BOX / 1080})`, transformOrigin: "top left", pointerEvents: "none" }}>
+        <CardCanvas page={page} index={0} total={card.pages.length} themeKey={card.theme} niche="" handle="" photoStyle={card.photoStyle} ratio={card.ratio} />
+      </div>
+    </div>
+  );
+}
+
 function StatCard({ k, v, d, dTone }: { k: string; v: React.ReactNode; d: string; dTone: BadgeTone }) {
   const tone = { ink: "text-ink", coral: "text-coral", teal: "text-teal", amber: "text-amber", muted: "text-muted", rose: "text-rose" }[dTone];
   return (

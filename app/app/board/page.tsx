@@ -103,6 +103,7 @@ export default function BoardPage() {
       {cards.length === 0 ? (
         <Card>
           <EmptyState
+            icon="layers"
             title="콘텐츠가 없어요"
             desc="AI 콘텐츠 생성에서 첫 기획을 추가해 보세요."
             action={
@@ -134,7 +135,7 @@ export default function BoardPage() {
                       <div
                         key={c.id}
                         onClick={() => router.push(`/app/create/${c.id}`)}
-                        className={`relative rounded-xl bg-card border border-line p-3 hover:-translate-y-0.5 transition cursor-pointer ${menuOpen === c.id ? "z-30" : ""}`}
+                        className={`relative rounded-xl bg-card border border-line p-3 hover:-translate-y-0.5 hover:border-coral/25 hover:bg-coral-soft/30 transition cursor-pointer ${menuOpen === c.id ? "z-30" : ""}`}
                       >
                         {/* 케밥(⋮) 메뉴 */}
                         <div className="absolute top-2 right-2">
@@ -191,7 +192,7 @@ export default function BoardPage() {
               </thead>
               <tbody>
                 {cards.map((c) => (
-                  <tr key={c.id} className="border-b border-line/60 hover:bg-paper-2/30 cursor-pointer" onClick={() => router.push(`/app/create/${c.id}`)}>
+                  <tr key={c.id} className="border-b border-line/60 hover:bg-coral-soft/30 transition cursor-pointer" onClick={() => router.push(`/app/create/${c.id}`)}>
                     <td className="py-3 px-4 font-medium text-ink">{c.title}</td>
                     <td className="py-3 px-3">
                       <span className="inline-flex items-center gap-1.5">

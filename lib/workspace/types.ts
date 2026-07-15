@@ -183,7 +183,8 @@ export interface CardNews {
   updatedAt: number;
 }
 
-export type PublishChannelStatus = "예약" | "발행완료" | "취소";
+// "발행중" = 크론이 선점(claim)한 상태(중복 발행 방지 락), "실패" = 발행 시도 후 오류.
+export type PublishChannelStatus = "예약" | "발행중" | "발행완료" | "실패" | "취소";
 
 export interface PublishJob {
   id: string;
@@ -197,6 +198,9 @@ export interface PublishJob {
   publishedAt?: number;
   igPermalink?: string;
   createdAt: number;
+  startedAt?: number; // 크론이 발행을 시작한 시각(멈춘 잡 회수용)
+  attempts?: number; // 발행 시도 횟수
+  error?: string; // 마지막 실패 사유
 }
 
 // 성과/인사이트 기록 (초기 수동 입력 허용 / P1 자동 수집)

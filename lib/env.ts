@@ -27,6 +27,10 @@ const serverSchema = z.object({
   IG_APP_SECRET: z.string().optional(),
   IG_OAUTH_REDIRECT_URI: z.string().url().optional(),
   IG_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
+  // 인스타가 image_url/video_url 을 가져갈 공개 https 주소(발행 필수). 예: https://kup-zeta.vercel.app
+  PUBLIC_BASE_URL: z.string().url().optional(),
+  // 예약 발행 크론(/api/cron/publish) 보호용 시크릿. Vercel Cron 이 Bearer 로 보낸다.
+  CRON_SECRET: z.string().optional(),
   // LLM (벤치 결과로 라우팅 — Task 4/5). 없으면 mock.
   ANTHROPIC_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),

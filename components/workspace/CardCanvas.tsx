@@ -221,7 +221,7 @@ export const TEMPLATE_LABELS: Record<CardTemplate, { name: string; desc: string 
   list: { name: "리스트형", desc: "번호 매긴 항목 나열" },
   compare: { name: "비교형", desc: "Before / After 대비" },
   quote: { name: "인용형", desc: "큰 따옴표 · 한 문장 강조" },
-  stat: { name: "통계형", desc: "큰 숫자 + 설명" },
+  stat: { name: "강조형", desc: "큰 숫자 강조" },
   cta: { name: "CTA형", desc: "마무리 · 저장/댓글 유도" },
 };
 
@@ -281,12 +281,14 @@ function TemplateCanvas({
   // 비어 있으면 아예 렌더하지 않는다(뱃지 없는 장).
   const tagText = page.tag?.trim() ?? "";
   const numeric = /^\d{1,2}$/.test(tagText); // 숫자 태그는 정사각 뱃지, 그 외는 알약 칩
+  // 화이트(cream)·블랙(ink) 테마에선 태그를 핑크(accent) 대신 글자색(fg)으로 → 타이틀·태그 모노톤 통일.
+  const tagColor = t.key === "cream" || t.key === "ink" ? t.fg : t.accent;
   const Tag = tagText ? (
     <div
       style={{
         alignSelf: "flex-start",
-        background: tint(t.accent, 0.14),
-        color: t.accent,
+        background: tint(tagColor, 0.14),
+        color: tagColor,
         borderRadius: numeric ? 12 : 999,
         padding: numeric ? "0" : "12px 26px",
         ...(numeric ? { width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center" } : {}),
@@ -369,16 +371,14 @@ function TemplateCanvas({
       );
       break;
     case "stat": {
-      const s = page.stat ?? { value: "", unit: "", caption: "" };
+      // 강조형: 큰 숫자(value) + 헤드라인 + 본문(공통 body). 단위·캡션 필드는 없앰(숫자에 %까지 함께 적음).
+      const s = page.stat ?? { value: "" };
       content = (
         <>
           {Tag}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <div style={{ fontSize: fs(180, 180), lineHeight: 1, fontWeight: 800, color: t.accent, letterSpacing: -4 }}>{s.value}</div>
-            {s.unit && <div style={{ fontSize: fs(66, 60), fontWeight: 700, color: t.accent }}>{s.unit}</div>}
-          </div>
+          <div style={{ fontSize: fs(180, 180), lineHeight: 1, fontWeight: 800, color: t.accent, letterSpacing: -4 }}>{s.value}</div>
           {Headline(fs(55, 56))}
-          {s.caption && <div style={{ fontSize: fs(36, 30), color: t.sub, lineHeight: 1.5 }}>{s.caption}</div>}
+          {Body(fs(36, 34))}
         </>
       );
       break;

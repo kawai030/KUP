@@ -466,6 +466,8 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
         <div className="text-sm font-medium mb-3">{activePage + 1}장 내용</div>
         {pg && (
           <div className="space-y-3">
+            {/* 태그는 카드에서 제목 위에 붙으므로, 편집도 헤드라인 위에서 한다 */}
+            <TagField pg={pg} activePage={activePage} patchPage={patchPage} />
             <Field label="헤드라인" hint="엔터로 줄바꿈하면 카드에도 그대로 적용돼요">
               <textarea className={inputClass} rows={2} value={pg.headline} onChange={(e) => patchPage(activePage, { headline: e.target.value })} />
             </Field>
@@ -520,7 +522,7 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
             </Field>
 
             {/* ── 템플릿별 전용 입력 필드 ── */}
-            <TemplateFields pg={pg} activePage={activePage} patchPage={patchPage} />
+            <TemplateExtraFields pg={pg} activePage={activePage} patchPage={patchPage} />
 
             {(pg.mediaType ?? "none") === "video" && (
               <p className="text-xs text-amber flex items-start gap-1.5">
@@ -1239,24 +1241,25 @@ function ReelsEditor({
 // 중첩 객체(compare/stat)는 patchPage 가 page 단위 얕은 병합이라, 기존 값을 먼저 스프레드해야 한다.
 // 태그는 헤드라인·본문처럼 '전 템플릿 공통' 필드다. 자동 번호는 붙지 않는다 —
 // "2"를 넣으면 번호 뱃지가, "AI"를 넣으면 AI 뱃지가 제목 위에 생긴다. 비우면 뱃지 없음.
-function TemplateFields(props: {
+// 카드에서 제목 위에 붙으므로 편집도 헤드라인 위에 둔다.
+function TagField({
+  pg,
+  activePage,
+  patchPage,
+}: {
   pg: CardPage;
   activePage: number;
   patchPage: (i: number, p: Partial<CardPage>) => void;
 }) {
-  const { pg, activePage, patchPage } = props;
   return (
-    <>
-      <Field label="태그" hint="제목 위 뱃지 · 비우면 표시 안 됨">
-        <input
-          className={inputClass}
-          value={pg.tag ?? ""}
-          onChange={(e) => patchPage(activePage, { tag: e.target.value })}
-          placeholder="예: 2 · AI · 0-1,000 팔로워"
-        />
-      </Field>
-      <TemplateExtraFields {...props} />
-    </>
+    <Field label="태그" hint="제목 위 뱃지 · 비우면 표시 안 됨">
+      <input
+        className={inputClass}
+        value={pg.tag ?? ""}
+        onChange={(e) => patchPage(activePage, { tag: e.target.value })}
+        placeholder="예: 2 · AI · 0-1,000 팔로워"
+      />
+    </Field>
   );
 }
 
@@ -1322,17 +1325,15 @@ function TemplateExtraFields({
   }
 
   if (tpl === "stat") {
-    const s = pg.stat ?? { value: "", unit: "", caption: "" };
-    const set = (p: Partial<typeof s>) => patchPage(activePage, { stat: { ...s, ...p } });
+    const s = pg.stat ?? { value: "" };
     return (
-      <Field label="통계" hint="큰 숫자로 강조돼요">
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <input className={`${inputClass} flex-1`} value={s.value} onChange={(e) => set({ value: e.target.value })} placeholder="숫자 (예: 87)" />
-            <input className={`${inputClass} w-24`} value={s.unit ?? ""} onChange={(e) => set({ unit: e.target.value })} placeholder="단위 (%)" />
-          </div>
-          <input className={inputClass} value={s.caption ?? ""} onChange={(e) => set({ caption: e.target.value })} placeholder="숫자 설명 (선택)" />
-        </div>
+      <Field label="강조 숫자" hint="크게 강조돼요 · 설명은 위 '본문'에 쓰면 숫자 아래에 나와요">
+        <input
+          className={inputClass}
+          value={s.value ?? ""}
+          onChange={(e) => patchPage(activePage, { stat: { ...s, value: e.target.value } })}
+          placeholder="예: 45% · 3배 · 1위"
+        />
       </Field>
     );
   }

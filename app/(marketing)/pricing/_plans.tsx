@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AuthButton } from "../_components/auth-modal";
+import { Icon } from "@/components/ui/icon";
 
 /** 요금제 플랜 + 월/연 토글. 연 결제 -30%(홈 요금제 미리보기와 동일 3종). */
 const PLANS = [
@@ -39,7 +40,9 @@ export function PricingPlans() {
             <ul className="plan-feats">
               {p.feats.map((f) => (
                 <li key={f}>
-                  <span className="ck">✓</span>
+                  <span className="ck">
+                    <Icon name="check" size={14} />
+                  </span>
                   {f}
                 </li>
               ))}

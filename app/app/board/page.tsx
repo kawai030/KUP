@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api, formatDate } from "@/lib/workspace/client";
 import { Badge, Button, Card, EmptyState, SectionTitle } from "@/components/workspace/ui";
+import { Icon } from "@/components/ui/icon";
 import { KANBAN_COLUMNS, kanbanColumnOf, type CardNews, type CardStatus, type PublishJob } from "@/lib/workspace/types";
 
-// TDS 상태 톤 — 진행=Toss Blue, 완료=green, 예약=amber, 대기=grey
+// TDS 상태 톤 — 진행=KUP 핑크, 완료=green, 예약=amber, 대기=grey
 const COLUMN_TONE: Record<CardStatus, string> = {
   기획중: "#8b95a1",
-  기획완료: "#3182f6",
-  제작중: "#3182f6",
+  기획완료: "#e52364",
+  제작중: "#e52364",
   제작완료: "#0aa06e",
   예약업로드: "#c47b00",
   업로드완료: "#0aa06e",
@@ -101,7 +102,18 @@ export default function BoardPage() {
 
       {cards.length === 0 ? (
         <Card>
-          <EmptyState title="콘텐츠가 없어요" desc="AI 콘텐츠 생성에서 첫 기획을 추가해 보세요." action={<Link href="/app/plans"><Button>AI 콘텐츠 생성으로 →</Button></Link>} />
+          <EmptyState
+            title="콘텐츠가 없어요"
+            desc="AI 콘텐츠 생성에서 첫 기획을 추가해 보세요."
+            action={
+              <Link href="/app/plans">
+                <Button>
+                  AI 콘텐츠 생성으로
+                  <Icon name="arrowRight" size={16} />
+                </Button>
+              </Link>
+            }
+          />
         </Card>
       ) : view === "칸반" ? (
         <div className="overflow-x-auto pb-2">

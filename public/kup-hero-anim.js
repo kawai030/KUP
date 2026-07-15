@@ -14,7 +14,7 @@
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xeef4fd, 13, 26);
+  scene.fog = new THREE.Fog(0xfef6f9, 13, 26);
 
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 100);
   camera.position.set(0,0,6.4);
@@ -23,7 +23,7 @@
   const dir = new THREE.DirectionalLight(0xffffff, 0.85);
   dir.position.set(4, 7, 8);
   scene.add(dir);
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xdbeafe, 0.45);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xfad1df, 0.45);
   scene.add(hemi);
 
   /* ---- post-it "content card" texture (white card + faint content, tinted pink per-instance) ---- */
@@ -42,12 +42,12 @@
     x.clearRect(0,0,s,s);
     roundRect(x,16,16,224,224,30); x.fillStyle='#ffffff'; x.fill();
     // media block
-    roundRect(x,34,34,188,104,18); x.fillStyle='#e8f3ff'; x.fill();
+    roundRect(x,34,34,188,104,18); x.fillStyle='#fef6f9'; x.fill();
     // play glyph
-    x.fillStyle='#3182f6';
+    x.fillStyle='#e52364';
     x.beginPath(); x.moveTo(118,72); x.lineTo(118,100); x.lineTo(144,86); x.closePath(); x.fill();
     // avatar + handle
-    x.fillStyle='#c9e2ff'; x.beginPath(); x.arc(52,168,13,0,Math.PI*2); x.fill();
+    x.fillStyle='#fad1df'; x.beginPath(); x.arc(52,168,13,0,Math.PI*2); x.fill();
     roundRect(x,74,161,86,12,6); x.fillStyle='#e5e8eb'; x.fill();
     // caption lines
     x.fillStyle='#f2f4f6';
@@ -76,7 +76,7 @@
   const pos=[], quat=[], size=[], thr=[], normal=[];
   const golden = Math.PI*(3-Math.sqrt(5));
   const up = new THREE.Vector3(0,0,1);
-  const pinks = [0x3182f6,0x4593fc,0x64a8ff,0x1b64da,0x90c2ff,0xc9e2ff].map(h=>new THREE.Color(h));
+  const pinks = [0xe52364,0xe9497e,0xef769f,0x920736,0xf4a4bf,0xfad1df].map(h=>new THREE.Color(h));
 
   // build, then pick "hero" cards = frontmost (largest z) so they face the camera at start
   const tmp=[];

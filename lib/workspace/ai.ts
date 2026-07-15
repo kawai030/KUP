@@ -210,6 +210,42 @@ export interface PlanOutline {
   generatedBy: "ai" | "template";
 }
 
+// ── 템플릿 자동 배정 ───────────────────────────────────────────────────────
+// LLM 응답엔 런타임 스키마 검증이 없다(프롬프트 + 파싱 화이트리스트가 전부).
+// 그래서 여기서 반드시 정규화한다: 첫 장=cover, 마지막 장=cta, 중간은 유효값이 아니면 list.
+const TEMPLATES = ["cover", "list", "compare", "quote", "stat", "cta"] as const;
+type Tpl = (typeof TEMPLATES)[number];
+
+function normTemplate(raw: unknown, i: number, n: number): Tpl {
+  if (i === 0) return "cover";
+  if (i === n - 1) return "cta";
+  return TEMPLATES.includes(raw as Tpl) && raw !== "cover" && raw !== "cta" ? (raw as Tpl) : "list";
+}
+
+/** 템플릿이 요구하는 부가 필드만 남긴다 — 엉뚱한 템플릿의 잔여 필드가 렌더를 깨지 않도록.
+ *  tag 는 헤드라인·본문처럼 전 템플릿 공통이라 여기서 항상 통과시킨다. */
+function pickTemplateFields(tpl: Tpl, p: Partial<CardPage>): Partial<CardPage> {
+  const tag = typeof p.tag === "string" && p.tag.trim() ? p.tag.trim().slice(0, 20) : undefined;
+  switch (tpl) {
+    case "list":
+      return { tag, items: Array.isArray(p.items) ? p.items.map(String).slice(0, 5) : undefined };
+    case "compare":
+      return p.compare ? { tag, compare: p.compare } : { tag };
+    case "stat":
+      return p.stat ? { tag, stat: p.stat } : { tag };
+    case "cta":
+      return { tag, ctaLabel: typeof p.ctaLabel === "string" ? p.ctaLabel : undefined };
+    default: // cover · quote — 태그 외 추가 필드 없음
+      return { tag };
+  }
+}
+
+/** 프롬프트에 넣을 템플릿 규칙 — 기획·제작 프롬프트가 공유한다. */
+const TEMPLATE_RULE =
+  "각 장에 template 을 배정한다. index 0 = \"cover\"(후킹), 마지막 장 = \"cta\". " +
+  "중간 장은 내용 성격에 맞춰 고른다: 항목 나열이면 \"list\", 전후·좌우 대비면 \"compare\", " +
+  "수치 강조면 \"stat\", 한 문장 임팩트면 \"quote\". 애매하면 \"list\".";
+
 export async function generatePlanOutline(survey: SurveyProfile, input: CardGenInput): Promise<PlanOutline> {
   const photo = input.format === "사진첨부형 카드뉴스";
   if (!hasApiKey()) return templatePlan(survey, input); // 의도된 mock
@@ -223,17 +259,21 @@ export async function generatePlanOutline(survey: SurveyProfile, input: CardGenI
       "한 장에는 한 가지 생각만. 첫 장(index 0)은 스크롤을 멈추는 후킹, 마지막 장은 자연스러운 CTA 방향(값싼 참여유도 금지).",
       "중간 슬라이드는 실질 정보(운동 동작·요리 단계·추천 항목 등)로 채운다 — 개념·‘하는 법 개요’로 때우지 않는다. 통계·가격·영업시간처럼 검증이 필요한 수치만 지어내지 않는다.",
       "결과는 JSON 객체만(설명·마크다운·코드펜스 없이). 디자인·색·폰트·HTML은 생성하지 않는다.",
-      "스키마: {title, pages:[{index, headline(각 장 서브타이틀), body(한 줄 요약)" +
+      TEMPLATE_RULE,
+      "스키마: {title, pages:[{index, headline(각 장 서브타이틀), body(한 줄 요약), template(cover|list|compare|quote|stat|cta)" +
         (photo ? ", photoNote(이 장에 넣을 사진 설명)" : "") +
         "}]}",
     ].join("\n");
     const user = JSON.stringify({ 주제: input.topicTitle, 형식: input.format, 목적: input.objective, 페이지수: input.pageCount, 핵심메시지: input.keyMessage });
     const data = (await callClaude(system, user, 1500)) as { title: string; pages: CardPage[] };
-    const pages = (data.pages || []).slice(0, input.pageCount).map((p, i) => ({
+    const raw = (data.pages || []).slice(0, input.pageCount);
+    const n = raw.length;
+    const pages = raw.map((p, i) => ({
       index: i,
       headline: p.headline || `${i + 1}장`,
       body: p.body || "",
       photoNote: photo ? p.photoNote : undefined,
+      template: normTemplate(p.template, i, n),
     }));
     return { title: data.title || input.topicTitle, pages: pages.length ? pages : templatePlan(survey, input).pages, generatedBy: "ai" };
   } catch (e) {
@@ -252,6 +292,7 @@ function templatePlan(survey: SurveyProfile, input: CardGenInput): PlanOutline {
     headline: i === 0 ? topic : i === n - 1 ? "오늘의 한 줄 + CTA" : labels[Math.min(i, labels.length - 2)] ?? "핵심",
     body: i === 0 ? `${survey.niche || "이 주제"}, 이거 하나만 알아도 달라져요.` : "여기에 한 줄 요약 (기획 단계)",
     photoNote: photo ? (i === 0 ? "대표 사진" : "관련 사진 1장") : undefined,
+    template: normTemplate(undefined, i, n), // 0=cover, 마지막=cta, 중간=list
   }));
   return { title: topic, pages, generatedBy: "template" };
 }
@@ -301,7 +342,15 @@ export function cardSystemPrompt(survey: SurveyProfile, format: CardFormat): str
     `형식: ${format}` + (format === "사진첨부형 카드뉴스" ? " (각 장 사진 위에 얹을 짧은 카피 중심)" : ""),
     ...common,
     ...qualityRules,
-    "결과는 JSON 객체만(설명·마크다운·코드펜스 없이). 디자인·색·폰트·HTML은 생성하지 않는다(렌더는 고정 템플릿 담당). 스키마: {title, pages:[{index, headline, body, photoNote}], caption, hashtags:string[8~12], cta}. 각 body 는 1~3문장.",
+    "결과는 JSON 객체만(설명·마크다운·코드펜스 없이). 디자인·색·폰트·HTML은 생성하지 않는다(렌더는 고정 템플릿 담당). 스키마: {title, pages:[{index, headline, body, tag, photoNote, template}], caption, hashtags:string[8~12], cta}. 각 body 는 1~3문장.",
+    TEMPLATE_RULE,
+    "tag 는 headline/body 처럼 전 템플릿 공통 필드다 — 제목 위에 뱃지로 붙는다(최대 16자, 비우면 뱃지 없음). " +
+      "표지 장은 후킹 문구('0-1,000 팔로워를 위한'), 중간 장은 장 번호('2') 나 분류('AI', '체크리스트') 처럼 짧게. 한 카드 안에서 일관된 방식으로.",
+    "아웃라인에 template 이 오면 그대로 따른다. 템플릿별 필수 필드를 함께 채운다: " +
+      "list → items:string[3~5] (각 항목 한 줄), compare → compare:{leftLabel,left,rightLabel,right}, " +
+      "stat → stat:{value(숫자만),unit,caption}, cta → ctaLabel(짧은 유도 문구). " +
+      "quote 는 headline/body 만 쓴다. stat 의 value 는 지어내지 말고 근거 있는 수치만 — 없으면 stat 대신 list 를 쓴다. " +
+      "list 의 body 는 항목 나열이 아니라 도입 한 줄이다(항목은 items 에만).",
     "최종 출력 전 스스로 점검(점검 내용은 출력하지 말 것): 중간 슬라이드가 실질 정보(동작·단계·실제 항목)로 차 있는가, 개념으로 때우지 않았는가? 한국어만 읽어도 바로 써먹을 수 있는가? 첫 장이 스크롤을 멈추는가? 지어낸 하드팩트(수치·가격·영업시간)는 없는가? 민감 주제면 면책을 넣었는가? 미달이면 고쳐서 낸다.",
   ].filter(Boolean).join("\n");
 }
@@ -316,7 +365,8 @@ export async function generateCard(survey: SurveyProfile, input: CardGenInput, o
       페이지수: input.pageCount,
       핵심메시지: input.keyMessage,
       톤미세조정: input.toneOverride || "(없음)",
-      아웃라인: outline?.map((p) => ({ 장: p.index + 1, 서브타이틀: p.headline, 요약: p.body })) || "(없음)",
+      // 기획 단계에서 배정한 template 을 제작 단계로 넘긴다 (빼면 두 단계가 어긋난다)
+      아웃라인: outline?.map((p) => ({ 장: p.index + 1, 서브타이틀: p.headline, 요약: p.body, template: p.template })) || "(없음)",
     });
     const data = (await callClaude(cardSystemPrompt(survey, input.format), user)) as {
       title: string;
@@ -326,13 +376,21 @@ export async function generateCard(survey: SurveyProfile, input: CardGenInput, o
       cta: string;
     };
     const photo = input.format === "사진첨부형 카드뉴스";
-    const pages = (data.pages || []).slice(0, input.pageCount).map((p, i) => ({
-      index: i,
-      headline: p.headline,
-      body: p.body,
-      note: p.note,
-      photoNote: photo ? p.photoNote : undefined,
-    }));
+    const reels = input.format === "릴스";
+    const raw = (data.pages || []).slice(0, input.pageCount);
+    const n = raw.length;
+    const pages = raw.map((p, i) => {
+      const base = {
+        index: i,
+        headline: p.headline,
+        body: p.body,
+        note: p.note,
+        photoNote: photo ? p.photoNote : undefined,
+      };
+      if (reels) return base; // 릴스는 장면 대본 — 템플릿 개념 없음
+      const tpl = normTemplate(p.template, i, n);
+      return { ...base, template: tpl, ...pickTemplateFields(tpl, p) };
+    });
     return {
       title: data.title || input.topicTitle,
       pages: pages.length ? pages : templateCard(survey, input).pages,
@@ -382,6 +440,8 @@ function templateCard(survey: SurveyProfile, input: CardGenInput, outline?: Card
     body: `${survey.niche || "이 주제"}, 이거 하나만 알아도 달라져요.`,
     note: `브랜드 무드 / 큰 제목 + 시선 끄는 배경`,
     photoNote: photo ? "대표 사진" : undefined,
+    template: "cover",
+    tag: survey.niche || undefined, // 표지 태그 — 사용자가 직접 고쳐 쓰는 자리
   });
   const middle = n - 2;
   for (let i = 0; i < middle; i++) {
@@ -391,6 +451,10 @@ function templateCard(survey: SurveyProfile, input: CardGenInput, outline?: Card
       body: `${kw[i % Math.max(1, kw.length)] || survey.niche || "포인트"} 관점에서 짧게 설명해 주세요. (초안 — 내 말투로 고치기)`,
       note: "텍스트 위주, 가독성 높은 레이아웃",
       photoNote: photo ? "관련 사진 1장" : undefined,
+      // 중간 장 기본 태그 = 장 번호. 사용자가 "AI" 같은 문구로 바꿔 쓸 수 있다(뱃지는 태그가 결정).
+      tag: String(i + 2),
+      // 기획 단계에서 배정한 template 을 승계 (없으면 list)
+      template: normTemplate(outline?.[i + 1]?.template, i + 1, n),
     });
   }
   const ctaText =
@@ -406,6 +470,8 @@ function templateCard(survey: SurveyProfile, input: CardGenInput, outline?: Card
     body: `${km}\n\n${ctaText}`,
     note: "마지막 장: CTA + 계정/프로필 안내",
     photoNote: photo ? "마무리 사진" : undefined,
+    template: "cta",
+    ctaLabel: ctaText,
   });
 
   const baseTags = [survey.niche, ...kw].filter(Boolean).map((t) => `#${t.replace(/\s+/g, "")}`);

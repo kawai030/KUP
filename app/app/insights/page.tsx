@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/workspace/client";
 import { Badge, Button, Card, SectionTitle } from "@/components/workspace/ui";
+import { Icon } from "@/components/ui/icon";
 import { type CardNews, type DmRule, type MetricEntry, type PublicUser, type PublishJob } from "@/lib/workspace/types";
 import { followerChallenge, resolveFollowerCount } from "@/lib/workspace/followers";
 
@@ -95,7 +96,14 @@ export default function InsightsPage() {
         action={
           activeAccount?.mode === "정식" ? (
             <Button size="sm" onClick={sync} disabled={syncing}>
-              {syncing ? "가져오는 중…" : "↧ 인스타에서 가져오기"}
+              {syncing ? (
+                "가져오는 중…"
+              ) : (
+                <>
+                  <Icon name="instagram" size={16} />
+                  인스타에서 가져오기
+                </>
+              )}
             </Button>
           ) : undefined
         }
@@ -119,7 +127,12 @@ export default function InsightsPage() {
         {followers >= 100 ? (
           <Stat label="유입 / 이탈" value={`+${followsTotal} / -${Math.max(0, Math.round(followsTotal * 0.2))}`} tone="teal" />
         ) : (
-          <Stat label="유입 / 이탈" value="🔒" tone="muted" tip={<>Meta 정책상 팔로워 <b className="font-semibold text-ink">100명</b> 이상부터 유입·이탈 데이터를 볼 수 있어요.</>} />
+          <Stat
+            label="유입 / 이탈"
+            value={<span className="inline-flex items-center h-8"><Icon name="lock" size={22} /></span>}
+            tone="muted"
+            tip={<>Meta 정책상 팔로워 <b className="font-semibold text-ink">100명</b> 이상부터 유입·이탈 데이터를 볼 수 있어요.</>}
+          />
         )}
         <Stat label="DM 리드마그넷" value={`${dmSent}건`} tone="amber" />
         <Stat label="발행 콘텐츠" value={`${cards.filter((c) => c.status === "업로드완료").length}건`} tone="ink" />
@@ -226,7 +239,9 @@ export default function InsightsPage() {
           <ul className="space-y-2">
             {nextActions.map((a, i) => (
               <li key={i} className="flex gap-2.5 items-start text-sm">
-                <span className="text-coral mt-0.5">→</span>
+                <span className="text-coral mt-0.5 shrink-0">
+                  <Icon name="arrowRight" size={16} />
+                </span>
                 <span className="text-ink-soft">{a}</span>
               </li>
             ))}
@@ -245,7 +260,7 @@ export default function InsightsPage() {
   );
 }
 
-function Stat({ label, value, tone, tip }: { label: string; value: string; tone: "ink" | "teal" | "amber" | "muted"; tip?: React.ReactNode }) {
+function Stat({ label, value, tone, tip }: { label: string; value: React.ReactNode; tone: "ink" | "teal" | "amber" | "muted"; tip?: React.ReactNode }) {
   const color = { ink: "text-ink", teal: "text-teal", amber: "text-amber", muted: "text-muted" }[tone];
   return (
     <Card className="p-4">
@@ -259,7 +274,9 @@ function Stat({ label, value, tone, tip }: { label: string; value: string; tone:
 function InfoTip({ text }: { text: React.ReactNode }) {
   return (
     <span className="group relative inline-flex align-middle">
-      <span className="cursor-help w-4 h-4 inline-flex items-center justify-center rounded-full border border-line text-[10px] text-muted leading-none">i</span>
+      <span className="cursor-help inline-flex items-center justify-center text-muted">
+        <Icon name="info" size={16} />
+      </span>
       <span className="pointer-events-none absolute right-0 bottom-full mb-2 hidden group-hover:block w-max max-w-[240px] whitespace-normal text-left rounded-xl border border-line bg-card text-ink-soft text-xs font-normal leading-relaxed px-3 py-2 shadow-lg z-30">
         {text}
       </span>
@@ -280,8 +297,8 @@ function ContributionsGraph({ jobs }: { jobs: PublishJob[] }) {
   today.setHours(0, 0, 0, 0);
   const start = new Date(today);
   start.setDate(start.getDate() - ((today.getDay() + 6) % 7) - (WEEKS - 1) * 7); // 월요일 정렬
-  // TDS Toss Blue 시퀀셜 스케일 (연하늘 → Toss Blue)
-  const levels = ["#f2f4f6", "#c9e2ff", "#90c2ff", "#4593fc", "#3182f6"];
+  // TDS KUP 핑크 시퀀셜 스케일 (연하늘 → KUP 핑크)
+  const levels = ["#f2f4f6", "#fad1df", "#f4a4bf", "#e9497e", "#e52364"];
   const cellColor = (n: number) => levels[n >= 4 ? 4 : n];
 
   const cols: { date: Date; n: number }[][] = [];

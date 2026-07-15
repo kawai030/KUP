@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AuthButton } from "./auth-modal";
+import { Icon } from "@/components/ui/icon";
 
 /**
  * 홍보 사이트 GNB — 홈(kup-hero)과 동일한 핑크 헤더. 모바일 햄버거 토글.
@@ -67,7 +68,7 @@ export function Gnb({ loggedIn }: { loggedIn: boolean }) {
           <Cta loggedIn={loggedIn} />
         </div>
         <button className="gnb-burger" onClick={() => setOpen((v) => !v)} aria-label="메뉴">
-          ☰
+          <Icon name="menu" size={22} />
         </button>
       </div>
       {open && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, Suspense, useContext, useEffect, useState, type ReactNode } from "react";
 import { continueAsGuest, signInWithGoogle, signInWithPassword, signUpWithPassword } from "./auth-actions";
+import { Icon } from "@/components/ui/icon";
 
 /**
  * 로그인/회원가입 모달 (화면흐름 L1/L2 — 팝업) + 로그인 상태 인식.
@@ -112,7 +113,7 @@ function AuthModalOverlay({ error, onClose }: { error: string | null; onClose: (
           aria-label="닫기"
           style={{ position: "absolute", top: 14, right: 16, border: "none", background: "none", fontSize: 18, color: "var(--ink3)", cursor: "pointer" }}
         >
-          ✕
+          <Icon name="close" size={18} />
         </button>
 
         <h2 style={{ fontSize: 22, fontWeight: 800, textAlign: "center" }}>Kup 시작하기</h2>
@@ -121,7 +122,7 @@ function AuthModalOverlay({ error, onClose }: { error: string | null; onClose: (
         </p>
 
         {error && (
-          <p style={{ background: "var(--coral-soft, #e8f3ff)", color: "var(--coral, #3182f6)", fontSize: 13, borderRadius: 8, padding: "9px 12px", marginBottom: 16, textAlign: "center" }}>
+          <p style={{ background: "var(--coral-soft, #fef6f9)", color: "var(--coral, #e52364)", fontSize: 13, borderRadius: 8, padding: "9px 12px", marginBottom: 16, textAlign: "center" }}>
             {error}
           </p>
         )}

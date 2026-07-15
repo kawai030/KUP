@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* 토스 디자인 시스템(TDS) 서체 — Toss Product Sans는 비공개 → Pretendard로 대체(docs/design/DESIGN-toss.md).
+        {/* KUP 디자인 시스템 서체 — TDS 전용 서체는 비공개 → Pretendard로 대체(docs/design/DESIGN-kup.md).
             한글·라틴 모두 Pretendard 한 벌로 통일. */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
         <link

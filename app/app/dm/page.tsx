@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/workspace/client";
 import { Badge, Button, Card, EmptyState, Field, inputClass, SectionTitle } from "@/components/workspace/ui";
+import { Icon } from "@/components/ui/icon";
 import { DM_LIMITS, DM_TEMPLATE, renderDmMessage, type DmRule, type PublicUser } from "@/lib/workspace/types";
 
 export default function DmPage() {
@@ -55,7 +56,14 @@ export default function DmPage() {
         eyebrow="자동화 설정 · 그로스 마케팅"
         title="DM 리드마그넷"
         desc="게시물에 키워드를 걸어, 댓글 단 사람에게 자료를 자동 DM으로 보내요. (공식 API · 옵트인)"
-        action={!creating ? <Button size="sm" onClick={() => setCreating(true)}>+ 규칙 추가</Button> : undefined}
+        action={
+          !creating ? (
+            <Button size="sm" onClick={() => setCreating(true)}>
+              <Icon name="plus" size={16} />
+              규칙 추가
+            </Button>
+          ) : undefined
+        }
       />
 
       {/* 플랜 한도 */}
@@ -109,7 +117,14 @@ function RuleCard({
   onSimulate: (r: DmRule) => void;
   onRemove: (id: string) => void;
 }) {
-  const target = rule.mediaId ? `📷 ${rule.postReference || "특정 게시물"}` : "전체 게시물";
+  const target = rule.mediaId ? (
+    <>
+      <Icon name="image" size={14} className="inline-block align-middle mr-1" />
+      {rule.postReference || "특정 게시물"}
+    </>
+  ) : (
+    "전체 게시물"
+  );
   const title = (rule.dmMessage.split("\n")[0] || "DM 자동 발송").trim();
   return (
     <Card className={`group p-4 flex items-center gap-3 ${rule.enabled ? "" : "opacity-60"}`}>
@@ -178,7 +193,7 @@ function RuleHelp() {
         onClick={() => setOpen((o) => !o)}
         className="inline-flex items-center gap-1.5 text-xs text-ink-soft border border-line rounded-full pl-1.5 pr-2.5 py-1 hover:bg-paper-2"
       >
-        <span className="w-4 h-4 inline-flex items-center justify-center rounded-full border border-line text-[10px] leading-none">?</span>
+        <Icon name="info" size={16} />
         작성 가이드
       </button>
       {open && (
@@ -187,7 +202,14 @@ function RuleHelp() {
           <div className="absolute right-0 top-full mt-2 w-[360px] max-w-[88vw] rounded-xl border border-line bg-card shadow-xl z-40 p-4">
             <div className="flex items-center justify-between mb-1">
               <div className="text-sm font-medium">이렇게 작성해요</div>
-              <button type="button" onClick={() => setOpen(false)} className="text-muted hover:text-ink">✕</button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="닫기"
+                className="text-muted hover:text-ink inline-flex items-center"
+              >
+                <Icon name="close" size={16} />
+              </button>
             </div>
             <p className="text-xs text-muted mb-3">대상 게시물에 키워드 댓글이 달리면 → 작성한 DM이 자동 발송돼요.</p>
             <div className="space-y-3">
@@ -297,7 +319,7 @@ function RuleForm({ onCreated, onCancel }: { onCreated: (r: DmRule) => void; onC
         </div>
 
         <label className="flex items-start gap-2.5 text-sm bg-paper-2/50 rounded-xl p-3">
-          <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#3182f6]" />
+          <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#e52364]" />
           <span className="text-ink-soft"><b>옵트인 동의</b> — 동의(키워드 댓글)한 사용자에게만 발송하며, 콜드 DM·자동팔로우·대량 발송을 하지 않는다는 정책에 동의합니다. (필수)</span>
         </label>
 

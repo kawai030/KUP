@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { api } from "@/lib/workspace/client";
 import { Button, Field, inputClass } from "@/components/workspace/ui";
+import { Icon } from "@/components/ui/icon";
 import type {
   OperationGoal,
   SurveyProfile,
@@ -346,11 +347,15 @@ export function SurveyForm({
           )}
           {step > 0 && (
             <Button variant="ghost" onClick={goBack} disabled={saving}>
-              ← 이전
+              <Icon name="arrowLeft" size={16} />
+              이전
             </Button>
           )}
           {step < LAST ? (
-            <Button onClick={goNext}>다음 →</Button>
+            <Button onClick={goNext}>
+              다음
+              <Icon name="arrowRight" size={16} />
+            </Button>
           ) : (
             <Button onClick={save} disabled={saving}>
               {saving ? "저장 중…" : mode === "onboarding" ? "완료하고 전략 받기" : "저장"}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "@/components/ui/icon";
 import { PricingPlans } from "./_plans";
 
 /** 요금제 — 플랜 3종 + 비교표. */
@@ -16,6 +17,11 @@ function cellClass(v: string): string {
   if (v === "✓") return "yes";
   if (v === "—") return "no";
   return "";
+}
+
+/** 표의 ✓ 표시는 디자인 시스템 체크 아이콘으로 렌더(색은 셀의 yes/no 클래스가 결정). */
+function cellContent(v: string) {
+  return v === "✓" ? <Icon name="check" size={18} className="mx-auto" /> : v;
 }
 
 export default function PricingPage() {
@@ -46,9 +52,9 @@ export default function PricingPage() {
             {COMPARE.map((row) => (
               <tr key={row[0]}>
                 <td>{row[0]}</td>
-                <td className={cellClass(row[1])}>{row[1]}</td>
-                <td className={`colhi ${cellClass(row[2])}`}>{row[2]}</td>
-                <td className={cellClass(row[3])}>{row[3]}</td>
+                <td className={cellClass(row[1])}>{cellContent(row[1])}</td>
+                <td className={`colhi ${cellClass(row[2])}`}>{cellContent(row[2])}</td>
+                <td className={cellClass(row[3])}>{cellContent(row[3])}</td>
               </tr>
             ))}
           </tbody>

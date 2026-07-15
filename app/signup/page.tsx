@@ -63,7 +63,7 @@ export default function SignupPage() {
         type="checkbox"
         checked={agree[k]}
         onChange={(e) => setAgree((a) => ({ ...a, [k]: e.target.checked }))}
-        className="w-4 h-4 accent-[#3182f6]"
+        className="w-4 h-4 accent-[#e52364]"
       />
       <span className={required ? "text-ink" : "text-ink-soft"}>
         <span className={required ? "text-coral" : "text-muted"}>[{required ? "필수" : "선택"}]</span> {label}
@@ -89,7 +89,7 @@ export default function SignupPage() {
 
         <div className="rounded-xl border border-line p-3.5 space-y-2.5">
           <label className="flex items-center gap-2.5 text-sm font-medium cursor-pointer pb-2 border-b border-line">
-            <input type="checkbox" checked={allChecked} onChange={toggleAll} className="w-4 h-4 accent-[#3182f6]" />
+            <input type="checkbox" checked={allChecked} onChange={toggleAll} className="w-4 h-4 accent-[#e52364]" />
             전체 동의 (필수 + 선택)
           </label>
           <Check k="terms" label="서비스 이용약관 동의" required />

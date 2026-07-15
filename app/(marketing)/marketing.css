@@ -3,11 +3,11 @@
 
 .kup-site {
   --bg-top: #f9fafb;
-  --bg-bot: #eef4fd;
+  --bg-bot: #fef6f9;
   --ink: #191f28;
   --ink-soft: #4e5968;
-  --pink: #3182f6;
-  --pink-deep: #1b64da;
+  --pink: #e52364;
+  --pink-deep: #920736;
   --card: #ffffff;
   --line: #e5e8eb;
   --radius: 16px;
@@ -17,7 +17,7 @@
 
   font-family: var(--body);
   color: var(--ink);
-  background: linear-gradient(180deg, var(--bg-top) 0%, #eef4fd 100%);
+  background: linear-gradient(180deg, var(--bg-top) 0%, #fef6f9 100%);
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   min-height: 100vh;
@@ -26,7 +26,7 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   a { color: inherit; text-decoration: none; }
-  ::selection { background: #c9e2ff; color: #191f28; }
+  ::selection { background: #fad1df; color: #191f28; }
 
   h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
   h4 { font-family: var(--display); font-weight: 700; letter-spacing: -.01em; }
@@ -37,7 +37,7 @@
   .gnb { position: sticky; top: 0; z-index: 40; display: block; background: rgba(249, 250, 251, .82); backdrop-filter: saturate(140%) blur(14px); border-bottom: 1px solid var(--line); }
   .gnb-inner { max-width: var(--maxw); margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 14px 24px; }
   .logo { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -.02em; display: flex; align-items: center; gap: 9px; color: var(--ink); }
-  .logo .dot { width: 11px; height: 11px; border-radius: 3px; background: var(--pink); transform: rotate(-8deg); box-shadow: 0 3px 8px rgba(49, 130, 246, .45); }
+  .logo .dot { width: 11px; height: 11px; border-radius: 3px; background: var(--pink); transform: rotate(-8deg); box-shadow: 0 3px 8px rgba(229, 35, 100, .45); }
   .gnb-nav { display: flex; gap: 26px; margin-left: 8px; }
   /* padding/background/border-radius 명시: 전역 wireframe.css의 .gnb-nav a(:hover)가
      회색 배경(--bg3)+패딩+radius를 누수시켜 호버 시 회색 알약이 생기던 것을 차단.
@@ -54,13 +54,13 @@
 
   /* ---------- buttons ---------- */
   .btn { font-family: var(--body); font-weight: 600; font-size: 15px; padding: 11px 20px; border-radius: 12px; border: none; cursor: pointer; transition: transform .15s ease, box-shadow .2s ease, background .2s, border-color .2s, color .2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
-  .btn:focus-visible { outline: 3px solid #90c2ff; outline-offset: 2px; }
+  .btn:focus-visible { outline: 3px solid #f4a4bf; outline-offset: 2px; }
   .btn-ghost { background: transparent; color: var(--ink); }
   .btn-ghost:hover { color: var(--pink-deep); }
-  .btn-primary { background: var(--pink); color: #fff; box-shadow: 0 8px 20px -6px rgba(49, 130, 246, .6); }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 26px -6px rgba(49, 130, 246, .7); }
+  .btn-primary { background: var(--pink); color: #fff; box-shadow: 0 8px 20px -6px rgba(229, 35, 100, .6); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 26px -6px rgba(229, 35, 100, .7); }
   .btn-line { background: #fff; border: 1px solid var(--line); color: var(--ink); }
-  .btn-line:hover { border-color: #90c2ff; }
+  .btn-line:hover { border-color: #f4a4bf; }
   .btn-lg { padding: 14px 26px; font-size: 16px; border-radius: 14px; }
   .btn-sm { padding: 8px 15px; font-size: 14px; border-radius: 10px; }
   .btn-block { width: 100%; }
@@ -83,7 +83,7 @@
   .feature-tag { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--pink); margin-bottom: 12px; letter-spacing: .02em; }
   .feature-copy h3 { font-size: clamp(22px, 2.6vw, 28px); }
   .feature-copy p { margin-top: 12px; color: var(--ink-soft); line-height: 1.65; font-size: 16px; }
-  .feature-ph { position: relative; min-height: 299px; border-radius: 24px; display: grid; place-items: center; gap: 12px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .5) 1.5px, transparent 1.7px) 0 0/22px 22px, linear-gradient(135deg, #90c2ff 0%, #4593fc 55%, #3182f6 100%); box-shadow: 0 30px 60px -40px rgba(49, 130, 246, .5); }
+  .feature-ph { position: relative; min-height: 299px; border-radius: 24px; display: grid; place-items: center; gap: 12px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .5) 1.5px, transparent 1.7px) 0 0/22px 22px, linear-gradient(135deg, #f4a4bf 0%, #e9497e 55%, #e52364 100%); box-shadow: 0 30px 60px -40px rgba(229, 35, 100, .5); }
   .feature-ic { font-size: 40px; }
   .feature-lbl { font-weight: 600; color: #fff; background: rgba(0, 0, 0, .16); padding: 8px 16px; border-radius: 999px; font-size: 14px; backdrop-filter: blur(4px); }
   /* Vimeo 영상 슬롯: 링크가 있으면 16:9 iframe이 둥근 프레임을 꽉 채움(플레이스홀더 대체) */
@@ -92,23 +92,23 @@
 
   /* ---------- pricing ---------- */
   .billing { display: flex; justify-content: center; margin: 28px 0 8px; }
-  .billing-seg { display: inline-flex; background: #e8f3ff; border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 2px; }
+  .billing-seg { display: inline-flex; background: #fef6f9; border: 1px solid var(--line); border-radius: 12px; padding: 4px; gap: 2px; }
   .billing-seg button { border: none; background: transparent; color: var(--ink-soft); padding: 9px 18px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .2s; }
-  .billing-seg button.active { background: #fff; color: var(--ink); box-shadow: 0 2px 6px -2px rgba(49, 130, 246, .4); }
+  .billing-seg button.active { background: #fff; color: var(--ink); box-shadow: 0 2px 6px -2px rgba(229, 35, 100, .4); }
   .billing-seg .save { color: var(--pink-deep); font-weight: 700; }
 
   .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 32px; align-items: stretch; }
   .plan { position: relative; display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 32px 28px; transition: transform .25s ease, box-shadow .25s ease; }
-  .plan:hover { transform: translateY(-4px); box-shadow: 0 22px 40px -22px rgba(49, 130, 246, .4); }
-  .plan.featured { border-color: var(--pink); box-shadow: 0 20px 50px -26px rgba(49, 130, 246, .7); }
-  .plan-badge { position: absolute; top: -12px; left: 28px; font-size: 12px; font-weight: 700; color: #fff; background: var(--pink); padding: 5px 12px; border-radius: 999px; box-shadow: 0 6px 14px -4px rgba(49, 130, 246, .6); }
+  .plan:hover { transform: translateY(-4px); box-shadow: 0 22px 40px -22px rgba(229, 35, 100, .4); }
+  .plan.featured { border-color: var(--pink); box-shadow: 0 20px 50px -26px rgba(229, 35, 100, .7); }
+  .plan-badge { position: absolute; top: -12px; left: 28px; font-size: 12px; font-weight: 700; color: #fff; background: var(--pink); padding: 5px 12px; border-radius: 999px; box-shadow: 0 6px 14px -4px rgba(229, 35, 100, .6); }
   .plan-name { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -.01em; }
   .plan-price { font-family: var(--display); font-weight: 800; font-size: 38px; letter-spacing: -.03em; margin-top: 12px; }
   .plan-price small { font-family: var(--body); font-weight: 500; font-size: 15px; color: var(--ink-soft); }
   .plan-desc { margin-top: 8px; color: var(--ink-soft); font-size: 15px; }
   .plan-feats { list-style: none; margin: 22px 0 26px; display: flex; flex-direction: column; gap: 12px; }
   .plan-feats li { display: flex; align-items: center; gap: 10px; font-size: 15px; }
-  .plan-feats .ck { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #e8f3ff; color: var(--pink-deep); font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .plan-feats .ck { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #fef6f9; color: var(--pink-deep); font-size: 12px; font-weight: 800; flex-shrink: 0; }
   .plan .btn { margin-top: auto; }
 
   /* 비교표 */
@@ -117,7 +117,7 @@
   .cmp th, .cmp td { padding: 14px 16px; text-align: center; border-bottom: 1px solid var(--line); }
   .cmp th:first-child, .cmp td:first-child { text-align: left; color: var(--ink-soft); font-weight: 500; }
   .cmp thead th { font-family: var(--display); font-weight: 700; background: #f9fafb; }
-  .cmp .colhi { background: #e8f3ff; }
+  .cmp .colhi { background: #fef6f9; }
   .cmp tbody tr:last-child td { border-bottom: none; }
   .cmp .yes { color: var(--pink-deep); font-weight: 700; }
   .cmp .no { color: #b0b8c1; }
@@ -138,7 +138,7 @@
   .faq-a { padding: 0 4px 14px; margin-top: -2px; color: var(--ink-soft); line-height: 1.6; font-size: 15px; max-width: 68ch; max-height: none; overflow: visible; }
 
   /* ---------- contact 이메일 카드 ---------- */
-  .contact-card { max-width: 640px; margin: 56px auto 0; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 44px 32px; box-shadow: 0 30px 60px -44px rgba(49, 130, 246, .5); }
+  .contact-card { max-width: 640px; margin: 56px auto 0; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 44px 32px; box-shadow: 0 30px 60px -44px rgba(229, 35, 100, .5); }
   .contact-card h3 { font-size: 22px; }
   .contact-card p { margin: 12px 0 20px; color: var(--ink-soft); line-height: 1.65; }
   .contact-email { font-family: var(--display); font-weight: 800; font-size: clamp(22px, 3vw, 30px); color: var(--pink-deep); letter-spacing: -.02em; display: inline-block; margin-bottom: 24px; }
@@ -152,7 +152,7 @@
   .policy-sec p { color: var(--ink-soft); line-height: 1.75; font-size: 15px; }
 
   /* ---------- CTA 밴드 ---------- */
-  .cta-band { text-align: center; margin-top: 72px; padding: 64px 24px; border-radius: 28px; background: radial-gradient(120% 120% at 50% 0%, #c9e2ff 0%, transparent 62%), #fff; border: 1px solid var(--line); }
+  .cta-band { text-align: center; margin-top: 72px; padding: 64px 24px; border-radius: 28px; background: radial-gradient(120% 120% at 50% 0%, #fad1df 0%, transparent 62%), #fff; border: 1px solid var(--line); }
   .cta-band h2 { margin-bottom: 24px; }
 
   /* ---------- footer ---------- */

@@ -62,12 +62,42 @@ export interface Strategy {
 export type ContentObjective = "조회" | "저장" | "공유" | "방문" | "문의" | "팔로우" | "댓글";
 export type TopicSource = "추천" | "직접입력";
 
+/**
+ * 카드 템플릿(레이아웃) 6종. 페이지 '성격'에 따라 고르며, AI가 자동 배정할 수도 있다.
+ * 미디어 영역(사진/영상) + 텍스트 영역 구조는 공통이고, 텍스트 배치만 달라진다.
+ */
+export type CardTemplate =
+  | "cover" // 표지형 — 큰 제목 + 여백. 1장(후킹)용
+  | "list" // 리스트형 — 번호 매긴 항목 나열
+  | "compare" // 비교형 — Before/After, 좌우 대비
+  | "quote" // 인용형 — 큰 따옴표 + 한 문장 강조
+  | "stat" // 통계형 — 큰 숫자 + 설명
+  | "cta"; // CTA형 — 마무리, 저장/댓글 유도
+
+/** 이 장에 들어갈 미디어 종류. 캐러셀 자식의 IMAGE/VIDEO 를 결정한다. */
+export type CardMediaType =
+  | "none" // 미디어 없음 — 텍스트만
+  | "photo" // 사진 (IMAGE 로 발행)
+  | "video"; // 영상 (VIDEO 로 발행 — 카드 프레임에 합성한 MP4)
+
 export interface CardPage {
   index: number;
   headline: string; // 서브 타이틀(각 장 제목)
   body: string; // 본문
   note?: string; // 비주얼/이미지 메모
   photoNote?: string; // 사진첨부형: 들어갈 사진 설명
+
+  // ── 장별 템플릿/미디어 (레퍼런스처럼 1장=사진, 2장=영상, 3장=사진 식으로 섞을 수 있다) ──
+  template?: CardTemplate; // 미설정 시 'cover'(1장) / 'list'(그 외) 로 폴백
+  mediaType?: CardMediaType; // 미설정 시 사진 유무로 추론
+  mediaLayout?: "split" | "bg"; // split: 위 미디어/아래 글(기본) · bg: 미디어 풀블리드 + DIM 위에 글
+  // 태그는 헤드라인·본문처럼 전 템플릿 공통. "2" 를 넣으면 번호 뱃지, "AI" 를 넣으면 AI 뱃지. 비우면 숨김.
+  tag?: string;
+  // 템플릿별 부가 필드 (없으면 해당 UI 생략)
+  items?: string[]; // list형: 항목들
+  compare?: { leftLabel: string; left: string; rightLabel: string; right: string }; // compare형
+  stat?: { value: string; unit?: string; caption?: string }; // stat형: 큰 숫자
+  ctaLabel?: string; // cta형: 버튼처럼 보이는 유도 문구
 }
 
 // 카드 수명주기 상태(6). '기획완료'·'제작완료'는 수명주기 게이트다 —

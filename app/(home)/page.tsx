@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { AuthButton, useAuthModal } from "@/app/(marketing)/_components/auth-modal";
+import { Icon } from "@/components/ui/icon";
 import "./landing.css";
 
 /**
@@ -103,7 +104,7 @@ export default function HomePage() {
             <span className="chip">발행 → 성과</span>
           </div>
         </div>
-        <div className="note">✦ <span><b>모든 초안은 언제든 직접 수정</b>할 수 있어요. 최종 결정권은 항상 당신에게 있습니다.</span></div>
+        <div className="note"><Icon name="sparkle" size={18} className="text-coral" /><span><b>모든 초안은 언제든 직접 수정</b>할 수 있어요. 최종 결정권은 항상 당신에게 있습니다.</span></div>
       </section>
 
       {/* showcase */}
@@ -122,7 +123,7 @@ export default function HomePage() {
             <div className="showcase-copy">
               <h3>{active.t}</h3>
               <p>{active.d}</p>
-              <a className="sc-link" href="#"><span>{active.l}</span><span aria-hidden="true">→</span></a>
+              <a className="sc-link" href="#"><span>{active.l}</span><Icon name="arrowRight" size={18} /></a>
             </div>
             <div className="showcase-visual">
               {SHOWCASE.map((s) => (
@@ -158,9 +159,9 @@ export default function HomePage() {
             <div className="plan-price">₩0<small>/월</small></div>
             <p className="plan-desc">가볍게 시작</p>
             <ul className="plan-feats">
-              <li><span className="ck">✓</span>계정 1개 연동</li>
-              <li><span className="ck">✓</span>AI 기획·제작 기본</li>
-              <li><span className="ck">✓</span>DM 리드마그넷 100건</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>계정 1개 연동</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>AI 기획·제작 기본</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>DM 리드마그넷 100건</li>
             </ul>
             <AuthButton className="btn btn-line">시작하기</AuthButton>
           </div>
@@ -170,9 +171,9 @@ export default function HomePage() {
             <div className="plan-price">₩9,900<small>/월</small></div>
             <p className="plan-desc">꾸준히 성장</p>
             <ul className="plan-feats">
-              <li><span className="ck">✓</span>계정 3개 연동</li>
-              <li><span className="ck">✓</span>AI 제작 무제한</li>
-              <li><span className="ck">✓</span>DM 1,000건 · 성과 분석</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>계정 3개 연동</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>AI 제작 무제한</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>DM 1,000건 · 성과 분석</li>
             </ul>
             <AuthButton className="btn btn-primary">무료로 시작하기</AuthButton>
           </div>
@@ -181,9 +182,9 @@ export default function HomePage() {
             <div className="plan-price">₩19,900<small>/월</small></div>
             <p className="plan-desc">제한 없이</p>
             <ul className="plan-feats">
-              <li><span className="ck">✓</span>계정 무제한</li>
-              <li><span className="ck">✓</span>DM 무제한</li>
-              <li><span className="ck">✓</span>우선 지원</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>계정 무제한</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>DM 무제한</li>
+              <li><span className="ck"><Icon name="check" size={14} /></span>우선 지원</li>
             </ul>
             <AuthButton className="btn btn-line">시작하기</AuthButton>
           </div>

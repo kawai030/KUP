@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api, formatDay } from "@/lib/workspace/client";
 import { Badge, Button, Card } from "@/components/workspace/ui";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { SurveyModal } from "@/components/workspace/SurveyModal";
 import { findIgAccount, DM_LIMITS, type CardNews, type CardStatus, type DmRule, type MetricEntry, type PublicUser, type PublishJob, type SurveyProfile } from "@/lib/workspace/types";
 import { resolveFollowerCount } from "@/lib/workspace/followers";
@@ -122,10 +123,10 @@ export default function HomePage() {
 
   const recentCards = [...cards].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
 
-  const quickActions = [
-    { icon: "≣", label: "AI로 콘텐츠 기획하기", href: "/app/plans" },
-    { icon: "✦", label: "카드뉴스 제작하기", href: "/app/create" },
-    { icon: "↗", label: "이번 주 성과 보기", href: "/app/insights" },
+  const quickActions: { icon: IconName; label: string; href: string }[] = [
+    { icon: "bulb", label: "AI로 콘텐츠 기획하기", href: "/app/plans" },
+    { icon: "sparkle", label: "카드뉴스 제작하기", href: "/app/create" },
+    { icon: "chart", label: "이번 주 성과 보기", href: "/app/insights" },
   ];
 
   return (
@@ -170,7 +171,9 @@ export default function HomePage() {
           <div className="space-y-2">
             {quickActions.map((a) => (
               <Link key={a.href} href={a.href} className="flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 hover:bg-paper-2 transition">
-                <span className="w-7 h-7 grid place-items-center rounded-lg bg-coral-soft text-coral text-sm">{a.icon}</span>
+                <span className="w-7 h-7 grid place-items-center rounded-lg bg-coral-soft text-coral">
+                  <Icon name={a.icon} size={16} />
+                </span>
                 <span className="text-sm font-medium">{a.label}</span>
               </Link>
             ))}
@@ -179,7 +182,10 @@ export default function HomePage() {
           {/* 이번 주 업로드 — 기존 '이번 주 현황' 자리 대체 */}
           <div className="flex items-center justify-between mt-6 mb-1">
             <div className="text-sm font-medium">이번 주 업로드</div>
-            <Link href="/app/insights" className="text-xs text-coral">전체 릴레이 →</Link>
+            <Link href="/app/insights" className="text-xs text-coral inline-flex items-center gap-1">
+              전체 릴레이
+              <Icon name="arrowRight" size={14} />
+            </Link>
           </div>
           <p className="text-xs text-muted mb-4">요일별 발행 건수를 색 농도로 — 꾸준히 올리고 있는지 한눈에.</p>
           <WeeklyUploadGraph jobs={jobs} />
@@ -195,14 +201,21 @@ export default function HomePage() {
                   <span className={`font-display text-lg ${s.on ? "text-coral" : "text-ink"}`}>{s.n}</span>
                   <span className={`text-xs ${s.on ? "text-coral" : "text-ink-soft"}`}>{s.label}</span>
                 </div>
-                {i < flow.length - 1 && <span className="text-muted text-sm">→</span>}
+                {i < flow.length - 1 && (
+                  <span className="text-muted inline-flex items-center">
+                    <Icon name="arrowRight" size={14} />
+                  </span>
+                )}
               </div>
             ))}
           </div>
 
           <div className="flex items-center justify-between mt-5 mb-2">
             <div className="text-sm font-medium">최근 콘텐츠</div>
-            <Link href="/app/board" className="text-xs text-coral">전체 보기 →</Link>
+            <Link href="/app/board" className="text-xs text-coral inline-flex items-center gap-1">
+              전체 보기
+              <Icon name="arrowRight" size={14} />
+            </Link>
           </div>
           {recentCards.length === 0 ? (
             <p className="text-sm text-ink-soft py-4">아직 만든 콘텐츠가 없어요.</p>
@@ -229,7 +242,10 @@ export default function HomePage() {
       {cards.length === 0 && (
         <Card className="p-6 text-center">
           <p className="text-ink-soft">아직 만든 콘텐츠가 없어요. 첫 기획부터 시작해 볼까요?</p>
-          <Link href="/app/plans" className="inline-block mt-3 text-coral font-medium">AI 콘텐츠 생성으로 →</Link>
+          <Link href="/app/plans" className="inline-flex items-center gap-1 mt-3 text-coral font-medium">
+            AI 콘텐츠 생성으로
+            <Icon name="arrowRight" size={16} />
+          </Link>
         </Card>
       )}
     </div>
@@ -308,8 +324,8 @@ function WeeklyUploadGraph({ jobs }: { jobs: PublishJob[] }) {
       counts.set(k, (counts.get(k) ?? 0) + 1);
     }
   }
-  // TDS Toss Blue 시퀀셜 스케일 (연하늘 → Toss Blue)
-  const levels = ["#f2f4f6", "#c9e2ff", "#90c2ff", "#4593fc", "#3182f6"];
+  // TDS KUP 핑크 시퀀셜 스케일 (연하늘 → KUP 핑크)
+  const levels = ["#f2f4f6", "#fad1df", "#f4a4bf", "#e9497e", "#e52364"];
   const cell = (n: number) => levels[n >= 4 ? 4 : n];
   const labels = ["월", "화", "수", "목", "금", "토", "일"];
 

@@ -6,8 +6,9 @@ import { api, formatDate } from "@/lib/workspace/client";
 import { Badge, Button, Card, Field, inputClass } from "@/components/workspace/ui";
 import { Modal } from "@/components/workspace/WorkspaceShell";
 import { Generating } from "@/components/workspace/Generating";
-import { CardCanvas, THEMES, getTheme } from "@/components/workspace/CardCanvas";
-import { activeIgHandle, findIgAccount, type CardNews, type CardPage, type IgAccount, type PublicUser, type ReviewFlag, type SensitiveDomain } from "@/lib/workspace/types";
+import { CardCanvas, THEMES, getTheme, TEMPLATE_LABELS } from "@/components/workspace/CardCanvas";
+import { Icon } from "@/components/ui/icon";
+import { activeIgHandle, findIgAccount, type CardNews, type CardPage, type CardTemplate, type IgAccount, type PublicUser, type ReviewFlag, type SensitiveDomain } from "@/lib/workspace/types";
 import { decideVerdict, verdictGate, VERDICT_META, isChecklist, LEGAL_BASIS_NOTE } from "@/lib/workspace/verdict";
 
 const STEPS = ["편집", "검수", "업로드"] as const;
@@ -471,6 +472,63 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
             <Field label="본문">
               <textarea className={inputClass} rows={3} value={pg.body} onChange={(e) => patchPage(activePage, { body: e.target.value })} />
             </Field>
+
+            {/* ── 장별 템플릿 (레이아웃) ── */}
+            <Field label="템플릿" hint="이 장의 레이아웃">
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(TEMPLATE_LABELS) as CardTemplate[]).map((key) => {
+                  const on = (pg.template ?? "cover") === key;
+                  const meta = TEMPLATE_LABELS[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => patchPage(activePage, { template: key })}
+                      className={`text-left px-3 py-2 rounded-xl border text-sm transition ${on ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}
+                    >
+                      <div className="font-medium">{meta.name}</div>
+                      <div className="text-[11px] text-muted mt-0.5 leading-tight">{meta.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+
+            {/* ── 장별 미디어 타입 — 영상 장은 캐러셀에서 VIDEO 로 발행된다 ── */}
+            <Field label="미디어" hint="이 장에 들어갈 것">
+              <div className="flex gap-2">
+                {([
+                  ["none", "없음", "텍스트만"],
+                  ["photo", "사진", "IMAGE 로 발행"],
+                  ["video", "영상", "VIDEO 로 발행"],
+                ] as const).map(([val, label, desc]) => {
+                  const cur = pg.mediaType ?? (photos[activePage] ? "photo" : "none");
+                  const on = cur === val;
+                  return (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => patchPage(activePage, { mediaType: val })}
+                      className={`flex-1 text-left px-3 py-2 rounded-xl border text-sm transition ${on ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}
+                    >
+                      <div className="font-medium">{label}</div>
+                      <div className="text-[11px] text-muted mt-0.5">{desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+
+            {/* ── 템플릿별 전용 입력 필드 ── */}
+            <TemplateFields pg={pg} activePage={activePage} patchPage={patchPage} />
+
+            {(pg.mediaType ?? "none") === "video" && (
+              <p className="text-xs text-amber flex items-start gap-1.5">
+                <Icon name="info" size={15} className="shrink-0 mt-0.5" />
+                <span>영상 장은 <b>카드 프레임 + 영상 합성(MP4)</b>이 필요해 발행 워커 가동 후 지원됩니다. 지금은 미리보기에 &lsquo;영상 자리&rsquo;로만 표시돼요.</span>
+              </p>
+            )}
+
             <Field label="사진 업로드" hint={photo ? "이 장의 메인 사진 (정사각/세로 권장)" : "이 장에 넣을 사진 (선택)"}>
               {photos[activePage] ? (
                 <div className="flex items-center gap-3">
@@ -491,30 +549,41 @@ function EditLeft({ draft, photo, photos, activePage, hashtagsText, setHashtagsT
               )}
               {uploadWarn && <p className="mt-1 text-xs text-coral">{uploadWarn}</p>}
             </Field>
-            <Field label="사진 배치" hint="카드 전체에 적용돼요">
-              <div className="flex gap-2">
-                {([
-                  ["top", "상단 사진", "사진 위 · 글씨 아래"],
-                  ["bg", "배경 사진", "사진 꽉 차게 · DIM 위에 글씨"],
-                ] as const).map(([val, label, desc]) => (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => patchDraft({ photoStyle: val })}
-                    className={`flex-1 text-left px-3 py-2 rounded-xl border text-sm transition ${draft.photoStyle === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}
-                  >
-                    <div className="font-medium">{label}</div>
-                    <div className="text-xs text-muted mt-0.5">{desc}</div>
-                  </button>
-                ))}
-              </div>
-            </Field>
+            {/* ── 장별 미디어 배치 — 반반(위 미디어/아래 글) vs 배경(꽉 채우고 DIM 위에 글) ── */}
+            {(pg.mediaType ?? (photos[activePage] ? "photo" : "none")) !== "none" && (
+              <Field label="미디어 배치" hint="이 장에만 적용돼요">
+                <div className="flex gap-2">
+                  {([
+                    ["split", "반반", "위 미디어 · 아래 글"],
+                    ["bg", "배경", "꽉 차게 · DIM 위에 글"],
+                  ] as const).map(([val, label, desc]) => {
+                    const cur = pg.mediaLayout ?? (draft.photoStyle === "bg" ? "bg" : "split");
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => patchPage(activePage, { mediaLayout: val })}
+                        className={`flex-1 text-left px-3 py-2 rounded-xl border text-sm transition ${cur === val ? "border-ink bg-paper-2/60" : "border-line hover:border-ink/30"}`}
+                      >
+                        <div className="font-medium">{label}</div>
+                        <div className="text-xs text-muted mt-0.5">{desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+            )}
             {photo && (
               <Field label="사진 설명(메모)" hint="선택 — 사진이 없을 때 안내 문구로 표시돼요">
                 <input className={inputClass} value={pg.photoNote ?? ""} onChange={(e) => patchPage(activePage, { photoNote: e.target.value })} placeholder="예: 신메뉴 클로즈업" />
               </Field>
             )}
-            {pg.note && <p className="text-xs text-muted">💡 {pg.note}</p>}
+            {pg.note && (
+              <p className="text-xs text-muted flex items-start gap-1.5">
+                <Icon name="bulb" size={15} className="shrink-0 mt-0.5" />
+                <span>{pg.note}</span>
+              </p>
+            )}
           </div>
         )}
       </Card>
@@ -650,7 +719,7 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded, domain, consent, setCo
             규제·사실 관련 회색지대 표현이 있어요. 그래도 발행하려면, <b>우리가 이만큼 안내했음에도 발행하는 만큼 최종 책임은 본인에게 있음</b>에 동의해 주세요.
           </p>
           <label className="flex items-start gap-2 mt-3 text-sm">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#3182f6]" />
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#e52364]" />
             <span>위 경고를 확인했고, 발행에 따른 최종 책임이 본인에게 있음에 동의합니다.</span>
           </label>
           <button type="button" onClick={() => setShowLegal((v) => !v)} className="text-sm underline text-muted hover:text-ink mt-2">
@@ -667,7 +736,7 @@ function ReviewTab({ card, dirty, onChange, onSaveNeeded, domain, consent, setCo
           <div className="space-y-2">
             {checklist.map((f) => (
               <label key={f.id} className={`flex items-start gap-2 text-sm ${f.resolved ? "opacity-60" : ""}`}>
-                <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-0.5 w-4 h-4 accent-[#3182f6]" />
+                <input type="checkbox" checked={f.resolved} onChange={() => toggleFlag(f)} className="mt-0.5 w-4 h-4 accent-[#e52364]" />
                 <span className="text-ink-soft">{f.message}</span>
               </label>
             ))}
@@ -1127,7 +1196,7 @@ function ReelsEditor({
           )}
           {verdict === "red" && (
             <label className="mt-3 flex items-start gap-2 text-xs rounded-lg p-2.5" style={{ background: VERDICT_META.red.soft }}>
-              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 w-3.5 h-3.5 accent-[#3182f6]" />
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 w-3.5 h-3.5 accent-[#e52364]" />
               <span>🔴 경고 — 회색지대 표현이 있어요. 최종 책임이 본인에게 있음에 동의하고 발행합니다.</span>
             </label>
           )}
@@ -1164,4 +1233,122 @@ function ReelsEditor({
       </div>
     </div>
   );
+}
+
+// ── 템플릿별 전용 입력 필드 ────────────────────────────────────────────────
+// 중첩 객체(compare/stat)는 patchPage 가 page 단위 얕은 병합이라, 기존 값을 먼저 스프레드해야 한다.
+// 태그는 헤드라인·본문처럼 '전 템플릿 공통' 필드다. 자동 번호는 붙지 않는다 —
+// "2"를 넣으면 번호 뱃지가, "AI"를 넣으면 AI 뱃지가 제목 위에 생긴다. 비우면 뱃지 없음.
+function TemplateFields(props: {
+  pg: CardPage;
+  activePage: number;
+  patchPage: (i: number, p: Partial<CardPage>) => void;
+}) {
+  const { pg, activePage, patchPage } = props;
+  return (
+    <>
+      <Field label="태그" hint="제목 위 뱃지 · 비우면 표시 안 됨">
+        <input
+          className={inputClass}
+          value={pg.tag ?? ""}
+          onChange={(e) => patchPage(activePage, { tag: e.target.value })}
+          placeholder="예: 2 · AI · 0-1,000 팔로워"
+        />
+      </Field>
+      <TemplateExtraFields {...props} />
+    </>
+  );
+}
+
+// 템플릿별 전용 입력(항목·비교·통계·CTA). 표지형/인용형은 태그 말고 추가 필드가 없다.
+function TemplateExtraFields({
+  pg,
+  activePage,
+  patchPage,
+}: {
+  pg: CardPage;
+  activePage: number;
+  patchPage: (i: number, p: Partial<CardPage>) => void;
+}) {
+  const tpl = pg.template ?? "cover";
+
+  if (tpl === "list") {
+    const items = pg.items ?? [];
+    const setItems = (next: string[]) => patchPage(activePage, { items: next });
+    return (
+      <Field label="항목" hint="최대 5개 · 번호는 자동으로 붙어요">
+        <div className="space-y-2">
+          {items.map((it, i) => (
+            <div key={i} className="flex gap-2">
+              <span className="w-7 h-9 grid place-items-center text-sm text-muted shrink-0">{i + 1}</span>
+              <input
+                className={inputClass}
+                value={it}
+                placeholder="예: 무드등 — 밤 분위기 담당"
+                onChange={(e) => setItems(items.map((x, idx) => (idx === i ? e.target.value : x)))}
+              />
+              <button type="button" onClick={() => setItems(items.filter((_, idx) => idx !== i))} className="text-sm text-muted hover:text-coral px-2 shrink-0">
+                삭제
+              </button>
+            </div>
+          ))}
+          {items.length < 5 && (
+            <button type="button" onClick={() => setItems([...items, ""])} className="text-sm text-coral hover:underline">
+              + 항목 추가
+            </button>
+          )}
+        </div>
+      </Field>
+    );
+  }
+
+  if (tpl === "compare") {
+    const c = pg.compare ?? { leftLabel: "BEFORE", left: "", rightLabel: "AFTER", right: "" };
+    const set = (p: Partial<typeof c>) => patchPage(activePage, { compare: { ...c, ...p } });
+    return (
+      <Field label="비교 내용" hint="좌/우 대비 (Before → After)">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <input className={inputClass} value={c.leftLabel} onChange={(e) => set({ leftLabel: e.target.value })} placeholder="BEFORE" />
+            <textarea className={inputClass} rows={3} value={c.left} onChange={(e) => set({ left: e.target.value })} placeholder="이전 상태" />
+          </div>
+          <div className="space-y-2">
+            <input className={inputClass} value={c.rightLabel} onChange={(e) => set({ rightLabel: e.target.value })} placeholder="AFTER" />
+            <textarea className={inputClass} rows={3} value={c.right} onChange={(e) => set({ right: e.target.value })} placeholder="이후 상태" />
+          </div>
+        </div>
+      </Field>
+    );
+  }
+
+  if (tpl === "stat") {
+    const s = pg.stat ?? { value: "", unit: "", caption: "" };
+    const set = (p: Partial<typeof s>) => patchPage(activePage, { stat: { ...s, ...p } });
+    return (
+      <Field label="통계" hint="큰 숫자로 강조돼요">
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input className={`${inputClass} flex-1`} value={s.value} onChange={(e) => set({ value: e.target.value })} placeholder="숫자 (예: 87)" />
+            <input className={`${inputClass} w-24`} value={s.unit ?? ""} onChange={(e) => set({ unit: e.target.value })} placeholder="단위 (%)" />
+          </div>
+          <input className={inputClass} value={s.caption ?? ""} onChange={(e) => set({ caption: e.target.value })} placeholder="숫자 설명 (선택)" />
+        </div>
+      </Field>
+    );
+  }
+
+  if (tpl === "cta") {
+    return (
+      <Field label="CTA 문구" hint="알약 버튼처럼 표시돼요">
+        <input
+          className={inputClass}
+          value={pg.ctaLabel ?? ""}
+          onChange={(e) => patchPage(activePage, { ctaLabel: e.target.value })}
+          placeholder="저장하고 다시 보기 🔖"
+        />
+      </Field>
+    );
+  }
+
+  return null; // cover / quote 는 헤드라인·본문만 사용
 }

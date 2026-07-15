@@ -5,14 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/workspace/client";
 import { Badge, Button, Logo } from "@/components/workspace/ui";
+import { Icon, type IconName } from "@/components/ui/icon";
 import { activeIgHandle, type PublicUser } from "@/lib/workspace/types";
 
-const NAV = [
-  { href: "/app/home", label: "홈", icon: "⌂", desc: "워크스페이스 개요" },
-  { href: "/app/plans", label: "AI 콘텐츠 생성", icon: "✦", desc: "주제 기획·제작" },
-  { href: "/app/board", label: "콘텐츠 관리", icon: "▦", desc: "칸반 보드" },
-  { href: "/app/insights", label: "콘텐츠 성과", icon: "◆", desc: "인사이트·챌린지" },
-  { href: "/app/dm", label: "DM 리드마그넷", icon: "✉", desc: "자동화 설정" },
+const NAV: { href: string; label: string; icon: IconName; desc: string }[] = [
+  { href: "/app/home", label: "홈", icon: "home", desc: "워크스페이스 개요" },
+  { href: "/app/plans", label: "AI 콘텐츠 생성", icon: "sparkle", desc: "주제 기획·제작" },
+  { href: "/app/board", label: "콘텐츠 관리", icon: "layers", desc: "칸반 보드" },
+  { href: "/app/insights", label: "콘텐츠 성과", icon: "chart", desc: "인사이트·챌린지" },
+  { href: "/app/dm", label: "DM 리드마그넷", icon: "message", desc: "자동화 설정" },
 ];
 
 export function WorkspaceShell({
@@ -62,9 +63,10 @@ export function WorkspaceShell({
           <Link
             href="/app/accounts"
             onClick={() => setMenuOpen(false)}
-            className="block rounded-[10px] border border-dashed border-line bg-paper-2/50 px-3 py-2.5 text-sm text-ink-soft hover:text-ink"
+            className="flex items-center gap-1.5 rounded-[10px] border border-dashed border-line bg-paper-2/50 px-3 py-2.5 text-sm text-ink-soft hover:text-ink"
           >
-            ＋ 계정 연동하기
+            <Icon name="plus" size={16} />
+            계정 연동하기
           </Link>
         ) : (
           <>
@@ -115,7 +117,8 @@ export function WorkspaceShell({
                   }}
                   className="mt-1 flex items-center gap-2 rounded-lg border-t border-line px-2.5 pb-2 pt-3 text-[13px] font-semibold text-ink hover:bg-paper-2 transition"
                 >
-                  ⊞ 전체 워크스페이스
+                  <Icon name="layers" size={16} />
+                  전체 워크스페이스
                 </Link>
                 <Link
                   href="/app/accounts"
@@ -125,7 +128,8 @@ export function WorkspaceShell({
                   }}
                   className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-ink hover:bg-paper-2 transition"
                 >
-                  ＋ 계정 추가하기
+                  <Icon name="plus" size={16} />
+                  계정 추가하기
                 </Link>
               </div>
             )}
@@ -145,7 +149,9 @@ export function WorkspaceShell({
                 active ? "bg-coral-soft text-coral font-medium" : "text-ink-soft hover:bg-paper-2"
               }`}
             >
-              <span className="w-5 text-center opacity-80">{n.icon}</span>
+              <span className="w-5 inline-flex items-center justify-center opacity-80">
+                <Icon name={n.icon} size={18} />
+              </span>
               <span className="flex-1">{n.label}</span>
             </Link>
           );
@@ -169,8 +175,12 @@ export function WorkspaceShell({
       <header className="sticky top-0 z-30 border-b border-line bg-paper/95 backdrop-blur">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMenuOpen((o) => !o)} className="lg:hidden text-ink-soft">
-              ☰
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="lg:hidden text-ink-soft inline-flex items-center"
+              aria-label="메뉴"
+            >
+              <Icon name="menu" size={20} />
             </button>
             <Logo size="md" href="/app/home" />
             {user.guest && <Badge tone="amber">비회원</Badge>}
@@ -263,7 +273,7 @@ export function Modal({ children, onClose }: { children: React.ReactNode; onClos
 }
 
 const SLIDES = [
-  { c: "#3182f6", t: "설문 한 번이면 전략까지", d: "사람·계정·톤·금지표현을 받아 계정에 맞는 전략과 주제를 제안해요." },
+  { c: "#e52364", t: "설문 한 번이면 전략까지", d: "사람·계정·톤·금지표현을 받아 계정에 맞는 전략과 주제를 제안해요." },
   { c: "#0aa06e", t: "AI 기획 → 제작 → 검수", d: "주제를 고르면 카드뉴스 초안이 한 번에. 발행 전 검수 게이트는 필수예요." },
   { c: "#c47b00", t: "발행은 내가, 성장은 함께", d: "최종 승인·발행은 언제나 나. 칸반·챌린지로 꾸준함을 이어가요." },
 ];
@@ -294,7 +304,10 @@ function OnboardingCarousel({ onClose, name }: { onClose: () => void; name: stri
           건너뛰기
         </button>
         {last ? (
-          <Button onClick={onClose}>{name}님, 시작하기 →</Button>
+          <Button onClick={onClose}>
+            {name}님, 시작하기
+            <Icon name="arrowRight" size={16} />
+          </Button>
         ) : (
           <Button onClick={() => setI((x) => x + 1)}>다음</Button>
         )}

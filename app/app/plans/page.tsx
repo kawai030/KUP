@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/workspace/client";
 import { Badge, Button, Card, EmptyState, Field, inputClass, SectionTitle } from "@/components/workspace/ui";
+import { Icon } from "@/components/ui/icon";
 import { Generating } from "@/components/workspace/Generating";
 import { Modal } from "@/components/workspace/WorkspaceShell";
 import { SurveyModal } from "@/components/workspace/SurveyModal";
@@ -122,7 +123,14 @@ export default function PlansPage() {
         eyebrow="워크스페이스"
         title="AI 기획 리스트"
         desc="전략에서 받은 주제로, 또는 내가 기획한 주제로 카드뉴스를 만들어요."
-        action={plans.length > 0 ? <Button size="sm" onClick={() => openAdd()}>+ 기획 추가</Button> : undefined}
+        action={
+          plans.length > 0 ? (
+            <Button size="sm" onClick={() => openAdd()}>
+              <Icon name="plus" size={16} />
+              기획 추가
+            </Button>
+          ) : undefined
+        }
       />
 
       {/* 전략 요약 (MVP: SHOW_STRATEGY 로 잠시 꺼둠 — 코드는 유지) */}
@@ -203,7 +211,8 @@ export default function PlansPage() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5 justify-end">
                         <Button size="sm" className="whitespace-nowrap" onClick={() => produce(c)}>
-                          {c.format === "릴스" ? "업로드하기 →" : "제작하기 →"}
+                          {c.format === "릴스" ? "업로드하기" : "제작하기"}
+                          <Icon name="arrowRight" size={16} />
                         </Button>
                         <PlanRowMenu onDelete={() => remove(c.id)} />
                       </div>
@@ -225,7 +234,10 @@ export default function PlansPage() {
           </p>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setGate(false)}>나중에</Button>
-            <Button onClick={() => { setGate(false); setShowSurvey(true); }}>설문하러 가기 →</Button>
+            <Button onClick={() => { setGate(false); setShowSurvey(true); }}>
+              설문하러 가기
+              <Icon name="arrowRight" size={16} />
+            </Button>
           </div>
         </Modal>
       )}
@@ -273,7 +285,7 @@ export default function PlansPage() {
                 </select>
               </Field>
               <Field label={form.format === "릴스" ? "장면 수" : "페이지 수"} hint={`${form.pageCount}${form.format === "릴스" ? "장면" : "장"}`}>
-                <input type="range" min={3} max={form.format === "릴스" ? 6 : 8} value={form.pageCount} onChange={(e) => setForm((f) => ({ ...f, pageCount: Number(e.target.value) }))} className="w-full accent-[#3182f6]" />
+                <input type="range" min={3} max={form.format === "릴스" ? 6 : 8} value={form.pageCount} onChange={(e) => setForm((f) => ({ ...f, pageCount: Number(e.target.value) }))} className="w-full accent-[#e52364]" />
               </Field>
             </div>
             <Field label="핵심 메시지" hint="선택">
